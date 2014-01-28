@@ -1,0 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+#open-space {
+    margin: auto;
+    display: block;
+    background-color: black;
+}
