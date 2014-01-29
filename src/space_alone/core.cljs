@@ -5,6 +5,7 @@
             [clojure.browser.dom :as dom :refer [log]]
             [goog.events :as events]
             [space-alone.constants :as c]
+            [space-alone.models :as m]
             [space-alone.utils :as u]))
 
 ;; TODO:
@@ -30,14 +31,6 @@
 
 (def canvas (dom/get-element "open-space"))
 (def ctx (.getContext canvas "2d"))
-
-(defn next-random
-  [min max]
-  (Math/floor (+ min (* (Math/random) (- max min -1)))))
-
-(defn next-random-float
-  [min max]
-  (+ min (* (Math/random) (- max min))))
 
 (defn listen
   [el type]
@@ -88,7 +81,7 @@
   [{:keys [screen-width screen-height] :as state}]
   (merge state {:bullets       []
                 :asteroids     []
-                :next-asteroid (next-random c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
+                :next-asteroid (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
                 :ship          {:x          (/ screen-width 2)
                                 :y          (/ screen-height 2)
                                 :vX         0
@@ -146,7 +139,6 @@
 
 (defn draw-stage
   [{:keys [screen-width screen-height ship bullets asteroids] :as state}]
-;;  (print bullets)
   (.clearRect ctx 0 0 screen-width screen-height)
   (doseq [b bullets]
     (draw-bullet b))
@@ -202,20 +194,14 @@
   (merge asteroid {:x (+ x vX)
                    :y (+ y vY)}))
 
-
 (defn create-asteroid
   ;; TODO: improve creation to make more random asteroid appearance
   [screen-width screen-height]
   (let [top?  (> 0.5 (Math/random))
-        left? (> 0.5 (Math/random))
-        vX    (next-random-float 0.01 0.5)
-        vY    (next-random-float 0.01 0.5)]
-    {:x    (if left? 0 screen-width)
-     :y    (if top? 0 screen-height)
-     :vX   (if left? vX (- vX))
-     :vY   (if top?  vY (- vY))
-     :power (:large c/ASTEROID_POWERS)
-     :size :large}))
+        left? (> 0.5 (Math/random))]
+    (m/asteroid (if left? 0 screen-width)
+                (if top? 0 screen-height)
+                :large)))
 
 (defn distance
   [x1 y1 x2 y2]
@@ -245,20 +231,8 @@
 (defn break-asteroid
   [{:keys [x y vX vY size]}]
   (case size
-    :large (take 4 (repeatedly (fn []
-                                 {:x    x
-                                  :y    y
-                                  :vX   (next-random-float 0.1 0.5)
-                                  :vY   (next-random-float 0.1 0.5)
-                                  :power (:medium c/ASTEROID_POWERS)
-                                  :size :medium})))
-    :medium (take 4 (repeatedly (fn []
-                                  {:x    x
-                                   :y    y
-                                   :vX   (next-random-float 0.3 0.5)
-                                   :vY   (next-random-float 0.3 0.5)
-                                   :power (:small c/ASTEROID_POWERS)
-                                   :size :small})))
+    :large (take 4 (repeatedly #(m/asteroid x y :medium)))
+    :medium (take 4 (repeatedly #(m/asteroid x y :small)))
     :small nil))
 
 (defn handle-bullet-hits
@@ -304,7 +278,7 @@
                                                 (cons (create-asteroid screen-width screen-height) asteroids)
                                                 asteroids)
                                :next-asteroid (if (zero? next-asteroid)
-                                                (next-random c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
+                                                (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
                                                 (max 0 (dec next-asteroid)))})
                        ;; handle asteroids movements
                        (update-in [:asteroids] #(map update-asteroid %))
@@ -312,10 +286,7 @@
                        (handle-collisions)
                        ;; handle shooting
                        (assoc :bullets (if shoot?
-                                         (cons {:x x
-                                                :y y
-                                                :energy c/BULLET_ENERGY
-                                                :rotation rotation}
+                                         (cons (m/bullet x y rotation)
                                                bullets)
                                          bullets))
                        ;; handle bullets movements
