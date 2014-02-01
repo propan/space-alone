@@ -6,7 +6,7 @@
 
 (defrecord Bullet [x y energy rotation])
 
-(defrecord Ship [x y vX vY thrust rotation rotate accurate shoot next-shoot])
+(defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot])
 
 (defn random-speed
   [size]
@@ -22,3 +22,7 @@
 (defn bullet
   [x y rotation]
   (Bullet. x y C/BULLET_ENERGY rotation))
+
+(defn ship
+  [x y]
+  (Ship. x y 0 0 0 0 :none false false 0))

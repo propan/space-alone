@@ -82,16 +82,8 @@
   (merge state {:bullets       []
                 :asteroids     []
                 :next-asteroid (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
-                :ship          {:x          (/ screen-width 2)
-                                :y          (/ screen-height 2)
-                                :vX         0
-                                :vY         0
-                                :thrust     0
-                                :rotation   0
-                                :rotate     :none
-                                :accelerate false
-                                :shooting   false
-                                :next-shoot 0}}))
+                :ship          (m/ship (/ screen-width 2)
+                                       (/ screen-height 2))}))
 
 (defn init-game
   []
@@ -269,8 +261,8 @@
 (defn update-stage
   []
   (swap! state (fn [{:keys [screen-width screen-height ship bullets asteroids next-asteroid] :as state}]
-                 (let [{:keys [x y vX vY thrust rotation rotate accelerate shooting next-shoot]} ship
-                       shoot?                                                                    (and shooting (zero? next-shoot))]
+                 (let [{:keys [x y vX vY thrust rotation rotate accelerate shoot next-shoot]} ship
+                       shoot?                                                                    (and shoot (zero? next-shoot))]
 ;;                   (println state)
                    ;; simplify all that by using a single merge?
                    (-> state
@@ -340,8 +332,8 @@
 
             :start-accelerate   (swap! state (ship-state-updater :accelerate false true))
             :stop-accelerate    (swap! state (ship-state-updater :accelerate true false))
-            :start-shooting     (swap! state (ship-state-updater :shooting false true))
-            :stop-shooting      (swap! state (ship-state-updater :shooting true false))
+            :start-shooting     (swap! state (ship-state-updater :shoot false true))
+            :stop-shooting      (swap! state (ship-state-updater :shoot true false))
             nil)))))
 
 (init-raf)
