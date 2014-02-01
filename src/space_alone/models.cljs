@@ -4,7 +4,7 @@
 
 (defrecord Asteroid [x y vX vY energy size])
 
-(defrecord Bullet [x y energy rotation])
+(defrecord Bullet [x y vX vY energy])
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot])
 
@@ -21,7 +21,9 @@
 
 (defn bullet
   [x y rotation]
-  (Bullet. x y C/BULLET_ENERGY rotation))
+  (let [vX (* C/BULLET_SPEED (Math/sin (* rotation (- C/RAD_FACTOR))))
+        vY (* C/BULLET_SPEED (Math/cos (* rotation (- C/RAD_FACTOR))))]
+    (Bullet. x y vX vY C/BULLET_ENERGY)))
 
 (defn ship
   [x y]
