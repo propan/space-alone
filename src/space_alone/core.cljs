@@ -91,13 +91,13 @@
   (d/draw ship ctx))
 
 (defn create-asteroid
-  ;; TODO: improve creation to make more random asteroid appearance
   [screen-width screen-height]
-  (let [top?  (> 0.5 (Math/random))
-        left? (> 0.5 (Math/random))]
-    (m/asteroid (if left? 0 screen-width)
-                (if top? 0 screen-height)
-                :large)))
+  (let [side (Math/random)]
+    (cond
+     (<= side 0.25) (m/asteroid 0 (u/random-int 0 screen-height) :large)
+     (<= side 0.50) (m/asteroid screen-width (u/random-int 0 screen-height) :large)
+     (<= side 0.75) (m/asteroid (u/random-int 0 screen-width) 0 :large)
+     :default       (m/asteroid (u/random-int 0 screen-width) screen-width :large))))
 
 (defn distance
   [x1 y1 x2 y2]
