@@ -1,6 +1,7 @@
 (ns space-alone.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :as a :refer [<! put! get! chan filter< map<]]
+            [clojure.browser.dom :as dom]
             [goog.events :as events]
             [space-alone.constants :as c]
             [space-alone.draw :as d]
@@ -194,12 +195,12 @@
             (empty? bullets))
       (merge state {:asteroids (concat res asteroids)
                     :bullets   bullets})
-      (let [{:keys [power] :as asteroid} (first asteroids)
+      (let [{:keys [energy] :as asteroid} (first asteroids)
             {:keys [hit bullets]}     (find-hit asteroid bullets)]
         (if-not (nil? hit)
-          (let [power-left (- power (:energy hit))]
-            (if (pos? power-left)
-              (recur (rest asteroids) bullets (cons (assoc asteroid :power power-left) res))
+          (let [energy-left (- energy (:energy hit))]
+            (if (pos? energy-left)
+              (recur (rest asteroids) bullets (cons (assoc asteroid :energy energy-left) res))
               (recur (rest asteroids) bullets (concat res (break-asteroid asteroid)))))
           (recur (rest asteroids) bullets (cons asteroid res)))))))
 
