@@ -4,7 +4,7 @@
             [space-alone.models :refer [Asteroid Bullet Ship]]))
 
 (defprotocol Drawable
-  (draw [this context]))
+  (draw [_ context]))
 
 (extend-type Asteroid
   Drawable

@@ -6,10 +6,10 @@
             [space-alone.constants :as c]
             [space-alone.draw :as d]
             [space-alone.models :as m]
+            [space-alone.tick :as t]
             [space-alone.utils :as u]))
 
 ;; TODO:
-;; [ ] fix asteroids movement so that they don't fly away
 ;; [ ] make asteroids with shapes
 ;; [ ] accurate collision detection
 
@@ -90,53 +90,6 @@
     (d/draw a ctx))
   (d/draw ship ctx))
 
-(defn next-x
-  [screen-width x vX]
-  (let [next-x (+ x vX)]
-    (cond
-     (> next-x screen-width) 0
-     (neg? next-x)           screen-width
-     :default                next-x)))
-
-(defn next-y
-  [screen-height y vY]
-  (let [next-y (- y vY)]
-    (cond
-     (> next-y screen-height) 0
-     (neg? next-y)           screen-height
-     :default                next-y)))
-
-(defn next-thrust
-  [accelerate thrust]
-  (if accelerate
-    (min (+ thrust c/ACCELERATION) c/MAX_THRUST)
-    (max 0 (- thrust c/THRUST_DECLINE))))
-
-(defn next-velocity
-  [vFn velocity accelerate rotation thrust]
-  (if accelerate
-    (let [next-velocity (+ velocity (* thrust (vFn (* rotation c/RAD_FACTOR))))]
-      (min (max next-velocity (- c/MAX_VELOCITY)) c/MAX_VELOCITY))
-    velocity))
-
-(defn next-rotation
-  [rotate rotation]
-  (case rotate
-    :left    (mod (- rotation c/TURN_FACTOR) 360)
-    :right   (mod (+ rotation c/TURN_FACTOR) 360)
-    rotation))
-
-(defn update-bullet
-  [{:keys [x y energy rotation] :as ship}]
-  (merge ship {:x        (- x (* c/BULLET_SPEED (Math/sin (* rotation (- c/RAD_FACTOR)))))
-               :y        (- y (* c/BULLET_SPEED (Math/cos (* rotation (- c/RAD_FACTOR)))))
-               :energy   (dec energy)}))
-
-(defn update-asteroid
-  [{:keys [x y vX vY] :as asteroid}]
-  (merge asteroid {:x (+ x vX)
-                   :y (+ y vY)}))
-
 (defn create-asteroid
   ;; TODO: improve creation to make more random asteroid appearance
   [screen-width screen-height]
@@ -212,10 +165,10 @@
 (defn update-stage
   []
   (swap! state (fn [{:keys [ship bullets asteroids next-asteroid] :as state}]
-                 (let [screen-width                                                           c/SCREEN_WIDTH
-                       screen-height                                                          c/SCREEN_HEIGHT
-                       {:keys [x y vX vY thrust rotation rotate accelerate shoot next-shoot]} ship
-                       shoot?                                                                 (and shoot (zero? next-shoot))]
+                 (let [screen-width                                  c/SCREEN_WIDTH
+                       screen-height                                 c/SCREEN_HEIGHT
+                       {:keys [x y vX vY rotation shoot next-shoot]} ship
+                       shoot?                                        (and shoot (zero? next-shoot))]
 ;;                   (println state)
                    ;; simplify all that by using a single merge?
                    (-> state
@@ -226,7 +179,7 @@
                                                 (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
                                                 (max 0 (dec next-asteroid)))})
                        ;; handle asteroids movements
-                       (update-in [:asteroids] #(map update-asteroid %))
+                       (update-in [:asteroids] #(map t/tick %))
                        ;; handle ship collisions with asteroids
                        (handle-collisions)
                        ;; handle shooting
@@ -237,20 +190,11 @@
                        ;; handle bullets movements
                        (update-in [:bullets] (fn [bullets]
                                                (->> bullets
-                                                    (map update-bullet)
+                                                    (map t/tick)
                                                     (filter #(pos? (:energy %))))))
                        (handle-bullet-hits)
                        ;; handle ship movements and handling
-                       (update-in [:ship] (fn [ship]
-                                            (merge ship {:x          (next-x screen-width x vX)
-                                                         :y          (next-y screen-height y vY)
-                                                         :vX         (next-velocity Math/sin vX accelerate rotation thrust)
-                                                         :vY         (next-velocity Math/cos vY accelerate rotation thrust)
-                                                         :rotation   (next-rotation rotate rotation)
-                                                         :thrust     (next-thrust accelerate thrust)
-                                                         :next-shoot (if shoot?
-                                                                       c/TIME_BETWEEN_SHOOTS
-                                                                       (max 0 (dec next-shoot)))}))))))))
+                       (update-in [:ship] t/tick))))))
 
 (defn draw-loop
   [then time]
