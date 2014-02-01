@@ -1,10 +1,9 @@
 (ns space-alone.core
-  (:require-macros [cljs.core.async.macros :refer [go]]
-                   [space-alone.macros :refer [with-context]])
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :as a :refer [<! put! get! chan filter< map<]]
-            [clojure.browser.dom :as dom :refer [log]]
             [goog.events :as events]
             [space-alone.constants :as c]
+            [space-alone.draw :as d]
             [space-alone.models :as m]
             [space-alone.utils :as u]))
 
@@ -89,54 +88,14 @@
   []
   (swap! state reset-state))
 
-(defn draw-ship
-  [{:keys [x y rotation] :as ship}]
-  (with-context [canvas ctx]
-    (doto canvas
-      (aset "strokeStyle" "blue")
-      (aset "fillStyle" "blue")
-      (.translate x y)
-      (.rotate (* rotation c/RAD_FACTOR))
-      (.beginPath)
-      (.lineTo (/ c/SHIP_WIDTH -2) 0)
-      (.lineTo 0 (- c/SHIP_HIGHT))
-      (.lineTo (/ c/SHIP_WIDTH 2) 0)
-      (.closePath)
-      (.fill))))
-
-(defn draw-bullet
-  [{:keys [x y rotation]}]
-  (with-context [canvas ctx]
-    (doto canvas
-      (.translate x y)
-      (aset "strokeStyle" "#FFFFFF")
-      (aset "lineWidth" 3)
-      (.beginPath)
-      (.moveTo -1 0)
-      (.lineTo 1 0)
-      (.stroke)
-      (.closePath))))
-
-(defn draw-asteroid
-  [{:keys [x y size] :as asteroid}]
-  (with-context [canvas ctx]
-    (doto canvas
-      (.translate x y)
-      (aset "strokeStyle" "purple")
-      (aset "fillStyle" "purple")
-      (.beginPath)
-      (.arc 0 0 (size c/ASTEROID_SIZES) 0 (* 2 Math/PI) false)
-      (.fill)
-      (.closePath))))
-
 (defn draw-stage
   [{:keys [screen-width screen-height ship bullets asteroids] :as state}]
   (.clearRect ctx 0 0 screen-width screen-height)
   (doseq [b bullets]
-    (draw-bullet b))
+    (d/draw b ctx))
   (doseq [a asteroids]
-    (draw-asteroid a))
-  (draw-ship ship))
+    (d/draw a ctx))
+  (d/draw ship ctx))
 
 (defn next-x
   [screen-width x vX]
@@ -175,11 +134,10 @@
     rotation))
 
 (defn update-bullet
-  [{:keys [x y energy rotation]}]
-  {:x        (- x (* c/BULLET_SPEED (Math/sin (* rotation (- c/RAD_FACTOR)))))
-   :y        (- y (* c/BULLET_SPEED (Math/cos (* rotation (- c/RAD_FACTOR)))))
-   :energy   (dec energy)
-   :rotation rotation})
+  [{:keys [x y energy rotation] :as ship}]
+  (merge ship {:x        (- x (* c/BULLET_SPEED (Math/sin (* rotation (- c/RAD_FACTOR)))))
+               :y        (- y (* c/BULLET_SPEED (Math/cos (* rotation (- c/RAD_FACTOR)))))
+               :energy   (dec energy)}))
 
 (defn update-asteroid
   [{:keys [x y vX vY] :as asteroid}]
