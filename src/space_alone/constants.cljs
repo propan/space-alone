@@ -2,6 +2,9 @@
 
 (def RAD_FACTOR (/ Math.PI 180))
 
+(def SCREEN_WIDTH 1024)
+(def SCREEN_HEIGHT 600)
+
 ;; ship dimensions
 (def SHIP_WIDTH 14)
 (def SHIP_HEIGHT 28)

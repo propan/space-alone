@@ -69,29 +69,21 @@
     (when-not (.-cancelAnimationFrame js/window)
       (aset js/window "cancelAnimationFrame" js/clearTimeout))))
 
-(defn init-screen
-  []
-  (let [screen-width  (.-innerWidth js/window)
-        screen-height (.-innerHeight js/window)]
-    (.setAttribute canvas "width" (str screen-width "px"))
-    (.setAttribute canvas "height" (str screen-height "px"))
-    (swap! state #(assoc % :screen-width screen-width :screen-height screen-height))))
-
 (defn reset-state
-  [{:keys [screen-width screen-height] :as state}]
+  [state]
   (merge state {:bullets       []
                 :asteroids     []
                 :next-asteroid (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
-                :ship          (m/ship (/ screen-width 2)
-                                       (/ screen-height 2))}))
+                :ship          (m/ship (/ c/SCREEN_WIDTH 2)
+                                       (/ c/SCREEN_HEIGHT 2))}))
 
 (defn init-game
   []
   (swap! state reset-state))
 
 (defn draw-stage
-  [{:keys [screen-width screen-height ship bullets asteroids] :as state}]
-  (.clearRect ctx 0 0 screen-width screen-height)
+  [{:keys [ship bullets asteroids] :as state}]
+  (.clearRect ctx 0 0 c/SCREEN_WIDTH c/SCREEN_HEIGHT)
   (doseq [b bullets]
     (d/draw b ctx))
   (doseq [a asteroids]
@@ -219,9 +211,11 @@
 
 (defn update-stage
   []
-  (swap! state (fn [{:keys [screen-width screen-height ship bullets asteroids next-asteroid] :as state}]
-                 (let [{:keys [x y vX vY thrust rotation rotate accelerate shoot next-shoot]} ship
-                       shoot?                                                                    (and shoot (zero? next-shoot))]
+  (swap! state (fn [{:keys [ship bullets asteroids next-asteroid] :as state}]
+                 (let [screen-width                                                           c/SCREEN_WIDTH
+                       screen-height                                                          c/SCREEN_HEIGHT
+                       {:keys [x y vX vY thrust rotation rotate accelerate shoot next-shoot]} ship
+                       shoot?                                                                 (and shoot (zero? next-shoot))]
 ;;                   (println state)
                    ;; simplify all that by using a single merge?
                    (-> state
@@ -296,7 +290,6 @@
             nil)))))
 
 (init-raf)
-(init-screen)
 (init-game)
 
 (event-loop)
