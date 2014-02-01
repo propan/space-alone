@@ -4,7 +4,7 @@
 
 ;; ship dimensions
 (def SHIP_WIDTH 14)
-(def SHIP_HIGHT 28)
+(def SHIP_HEIGHT 28)
 
 ;; movement constants
 (def MAX_VELOCITY 6)

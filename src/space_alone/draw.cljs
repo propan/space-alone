@@ -44,7 +44,7 @@
         (.rotate (* rotation C/RAD_FACTOR))
         (.beginPath)
         (.lineTo (/ C/SHIP_WIDTH -2) 0)
-        (.lineTo 0 (- C/SHIP_HIGHT))
+        (.lineTo 0 (- C/SHIP_HEIGHT))
         (.lineTo (/ C/SHIP_WIDTH 2) 0)
         (.closePath)
         (.fill)))))
