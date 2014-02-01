@@ -165,15 +165,12 @@
 (defn update-stage
   []
   (swap! state (fn [{:keys [ship bullets asteroids next-asteroid] :as state}]
-                 (let [screen-width                                  c/SCREEN_WIDTH
-                       screen-height                                 c/SCREEN_HEIGHT
-                       {:keys [x y vX vY rotation shoot next-shoot]} ship
+                 (let [{:keys [x y vX vY rotation shoot next-shoot]} ship
                        shoot?                                        (and shoot (zero? next-shoot))]
-;;                   (println state)
                    ;; simplify all that by using a single merge?
                    (-> state
                        (merge {:asteroids     (if (zero? next-asteroid)
-                                                (cons (create-asteroid screen-width screen-height) asteroids)
+                                                (cons (create-asteroid c/SCREEN_WIDTH c/SCREEN_HEIGHT) asteroids)
                                                 asteroids)
                                :next-asteroid (if (zero? next-asteroid)
                                                 (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
