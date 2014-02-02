@@ -10,10 +10,11 @@
 
 (defn random-speed
   [size]
-  (case size
-    :large  (u/random-float 0.01 0.3)
-    :medium (u/random-float 0.1  0.5)
-    :small  (u/random-float 0.2  0.8)))
+  (let [direction (if (< (Math/random) 0.5) -1 1)]
+    (case size
+      :large  (* direction (u/random-float 0.01 0.3))
+      :medium (* direction (u/random-float 0.1  0.5))
+      :small  (* direction (u/random-float 0.2  0.8)))))
 
 (defn asteroid
   [x y size]
