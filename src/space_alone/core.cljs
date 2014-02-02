@@ -155,51 +155,47 @@
                (:x asteroid) (:y asteroid))
      ((:size asteroid) c/ASTEROID_SIZES)))
 
-(defn handle-collisions
+(defn detect-collision
   [{:keys [ship asteroids] :as state}]
   (let [collisions (filter (partial collide? ship) asteroids)]
     (if (empty? collisions)
       state
       (reset-state state))))
 
+(defn- asteroids-tick
+  [asteroids add-asteroid?]
+  (->> (if add-asteroid?
+         (cons (create-asteroid c/SCREEN_WIDTH c/SCREEN_HEIGHT) asteroids)
+         asteroids)
+       (map t/tick)))
+
+(defn- bullets-tick
+  [bullets shoot? ship-x ship-y ship-rotation]
+  (->> (if shoot?
+         (cons (m/bullet ship-x ship-y ship-rotation) bullets)
+         bullets)
+       (map t/tick)
+       (filter #(pos? (:energy %)))))
+
 (defn update-stage
   []
   (swap! state (fn [{:keys [ship bullets asteroids next-asteroid] :as state}]
-                 (let [{:keys [x y vX vY rotation shoot next-shoot]} ship
-                       shoot?                                        (and shoot (zero? next-shoot))]
-                   ;; simplify all that by using a single merge?
+                 (let [{:keys [x y rotation shoot next-shoot]} ship]
                    (-> state
-                       (merge {:asteroids     (if (zero? next-asteroid)
-                                                (cons (create-asteroid c/SCREEN_WIDTH c/SCREEN_HEIGHT) asteroids)
-                                                asteroids)
+                       (merge {:asteroids     (asteroids-tick asteroids (zero? next-asteroid))
+                               :bullets       (bullets-tick bullets (and shoot (zero? next-shoot)) x y rotation)
+                               :ship          (t/tick ship)
                                :next-asteroid (if (zero? next-asteroid)
                                                 (u/random-int c/MIN_TIME_BEFORE_ASTEROID c/MAX_TIME_BEFORE_ASTEROID)
                                                 (max 0 (dec next-asteroid)))})
-                       ;; handle asteroids movements
-                       (update-in [:asteroids] #(map t/tick %))
-                       ;; handle ship collisions with asteroids
-                       (handle-collisions)
-                       ;; handle shooting
-                       (assoc :bullets (if shoot?
-                                         (cons (m/bullet x y rotation)
-                                               bullets)
-                                         bullets))
-                       ;; handle bullets movements
-                       (update-in [:bullets] (fn [bullets]
-                                               (->> bullets
-                                                    (map t/tick)
-                                                    (filter #(pos? (:energy %))))))
-                       (handle-bullet-hits)
-                       ;; handle ship movements and handling
-                       (update-in [:ship] t/tick))))))
+                       (detect-collision)
+                       (handle-bullet-hits))))))
 
 (defn draw-loop
   [then time]
-  (let [delta (- time then)
-        fps   (.toFixed (/ 1000 delta) 1) ]
-    (update-stage)
-    (draw-stage @state)
-    (.requestAnimationFrame js/window (partial draw-loop time))))
+  (update-stage)
+  (draw-stage @state)
+  (.requestAnimationFrame js/window (partial draw-loop time)))
 
 (defn- to-event
   [mapping]
