@@ -157,10 +157,9 @@
 
 (defn detect-collision
   [{:keys [ship asteroids] :as state}]
-  (let [collisions (filter (partial collide? ship) asteroids)]
-    (if (empty? collisions)
-      state
-      (reset-state state))))
+  (if (some #(collide? ship %) asteroids)
+    (reset-state state)
+    state))
 
 (defn- asteroids-tick
   [asteroids add-asteroid?]
@@ -195,7 +194,7 @@
   [then time]
   (update-stage)
   (draw-stage @state)
-  (.requestAnimationFrame js/window (partial draw-loop time)))
+  (.requestAnimationFrame js/window #(draw-loop time %)))
 
 (defn- to-event
   [mapping]
