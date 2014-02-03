@@ -8,6 +8,10 @@
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot])
 
+(defrecord GameScreen [asteroids bullets ship next-asteroid])
+
+(defrecord WelcomeScreen [])
+
 (defn random-speed
   [size]
   (let [direction (if (< (Math/random) 0.5) -1 1)]
@@ -29,3 +33,14 @@
 (defn ship
   [x y]
   (Ship. x y 0 0 0 0 :none false false 0))
+
+(defn game-screen
+  []
+  (GameScreen. [] []
+               (ship (/ C/SCREEN_WIDTH 2)
+                     (/ C/SCREEN_HEIGHT 2))
+               (u/random-int C/MIN_TIME_BEFORE_ASTEROID
+                             C/MAX_TIME_BEFORE_ASTEROID)))
+(defn welcome-screen
+  []
+  (WelcomeScreen.))

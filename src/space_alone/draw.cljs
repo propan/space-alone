@@ -1,7 +1,16 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid Bullet Ship]]))
+            [space-alone.models :refer [Asteroid Bullet Ship GameScreen WelcomeScreen]]))
+
+(defn- draw-text
+  [ctx x y text]
+  (let [dialog-width (.-width (.measureText ctx text))]
+    (.fillText ctx text (- x (/ dialog-width 2)) y)))
+
+;;
+;;
+;;
 
 (defprotocol Drawable
   (draw [_ context]))
@@ -48,3 +57,27 @@
         (.lineTo (/ C/SHIP_WIDTH 2) 0)
         (.closePath)
         (.fill)))))
+
+(extend-type GameScreen
+  Drawable
+  (draw [{:keys [ship bullets asteroids]} context]
+    (.clearRect context 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
+    (doseq [b bullets]
+      (draw b context))
+    (doseq [a asteroids]
+      (draw a context))
+    (draw ship context)))
+
+(extend-type WelcomeScreen
+  Drawable
+  (draw [screen context]
+    (with-context [ctx context]
+      (doto ctx
+        (.clearRect 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
+        (aset "font" "80px Raleway")
+        (aset "fillStyle" "#FFFFFF")
+        (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
+        (draw-text 0 0 "SPACE ALONE")
+        (aset "font" "14px Raleway")
+        (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
+        (draw-text 0 30 "press SPACE to start the game")))))
