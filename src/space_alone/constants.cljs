@@ -9,6 +9,11 @@
 (def SHIP_WIDTH 14)
 (def SHIP_HEIGHT 28)
 
+;; rewards
+(def REWARDS {:large  150
+              :medium 75
+              :small  15})
+
 ;; movement constants
 (def MAX_VELOCITY 6)
 (def MAX_THRUST 2)
