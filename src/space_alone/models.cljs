@@ -28,7 +28,7 @@
   [x y rotation]
   (let [vX (* C/BULLET_SPEED (Math/sin (* rotation (- C/RAD_FACTOR))))
         vY (* C/BULLET_SPEED (Math/cos (* rotation (- C/RAD_FACTOR))))]
-    (Bullet. x y vX vY C/BULLET_ENERGY)))
+    (Bullet. (- x vX) (- y vY) vX vY C/BULLET_ENERGY)))
 
 (defn ship
   [x y]

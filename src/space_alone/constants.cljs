@@ -47,3 +47,7 @@
 (def ARROW_UP 38)
 (def ARROW_RIGHT 39)
 (def ARROW_DOWN 40)
+
+;; graphics
+
+(def SHADOW_BLUR 9)

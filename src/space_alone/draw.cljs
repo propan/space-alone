@@ -3,6 +3,10 @@
   (:require [space-alone.constants :as C]
             [space-alone.models :refer [Asteroid Bullet Ship GameScreen WelcomeScreen]]))
 
+;
+; Helpers
+;
+
 (defn- draw-text
   [ctx x y text align]
   (let [dialog-width (.-width (.measureText ctx text))]
@@ -11,8 +15,21 @@
       :right (.fillText ctx text x y)
              (.fillText ctx text (- x (/ dialog-width 2)) y))))
 
+(defn- draw-stat-panel
+  [context lives score]
+  (with-context [ctx context]
+    (doto ctx
+      (aset "font" "16px Helvetica")
+      (.translate 25 30)
+      (aset "fillStyle" "#FFFFFF")
+      (draw-text 20 0 "LIVES" :center)
+      (draw-text 105 0 "SCORE" :center)
+      (aset "fillStyle" "#00FF00")
+      (draw-text 60 0 (str lives) :center)
+      (draw-text 145 0 (str score) :right))))
+
 ;;
-;;
+;; Drawable Protocol
 ;;
 
 (defprotocol Drawable
@@ -31,48 +48,47 @@
         (.fill)
         (.closePath)))))
 
+(defn- create-gradient
+  [ctx x y]
+  (doto (.createRadialGradient ctx x y 0 x y 5)
+    (.addColorStop 0 "#FFFFFF")
+    (.addColorStop 0.4 "#FFFFFF")
+    (.addColorStop 0.4 "#FF0000")
+    (.addColorStop 1.0 "#000000")))
+
 (extend-type Bullet
   Drawable
   (draw [{:keys [x y rotation]} context]
     (with-context [ctx context]
       (doto ctx
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" "#FF0000")
+        (aset "fillStyle" (create-gradient ctx 0 0))
         (.translate x y)
-        (aset "strokeStyle" "#FFFFFF")
-        (aset "lineWidth" 3)
+        (.rotate (* rotation C/RAD_FACTOR))
         (.beginPath)
-        (.moveTo -1 0)
-        (.lineTo 1 0)
-        (.stroke)
-        (.closePath)))))
+        (.arc 0 0 5 (* 2 Math/PI) false)
+        (.fill)))))
 
 (extend-type Ship
   Drawable
   (draw [{:keys [x y rotation]} context]
     (with-context [ctx context]
       (doto ctx
-        (aset "strokeStyle" "blue")
-        (aset "fillStyle" "blue")
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" "#0000FF")
+        (aset "strokeStyle" "#0000FF")
+        (aset "lineWidth" 2.5)
         (.translate x y)
         (.rotate (* rotation C/RAD_FACTOR))
         (.beginPath)
-        (.lineTo (/ C/SHIP_WIDTH -2) 0)
-        (.lineTo 0 (- C/SHIP_HEIGHT))
-        (.lineTo (/ C/SHIP_WIDTH 2) 0)
+        (.moveTo -10 10)
+        (.lineTo 0 -15)
+        (.lineTo 10 10)
+        (.moveTo 7 5)
+        (.lineTo -7 5)
         (.closePath)
-        (.fill)))))
-
-(defn- draw-stat-panel
-  [context lives score]
-  (with-context [ctx context]
-    (doto ctx
-      (aset "font" "16px Helvetica")
-      (.translate 25 30)
-      (aset "fillStyle" "#FFFFFF")
-      (draw-text 20 0 "LIVES" :center)
-      (draw-text 105 0 "SCORE" :center)
-      (aset "fillStyle" "#00FF00")
-      (draw-text 60 0 (str lives) :center)
-      (draw-text 145 0 (str score) :right))))
+        (.stroke)))))
 
 (extend-type GameScreen
   Drawable
