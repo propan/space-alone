@@ -8,7 +8,7 @@
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot])
 
-(defrecord GameScreen [asteroids bullets ship next-asteroid])
+(defrecord GameScreen [asteroids bullets ship next-asteroid lives score])
 
 (defrecord WelcomeScreen [])
 
@@ -40,7 +40,8 @@
                (ship (/ C/SCREEN_WIDTH 2)
                      (/ C/SCREEN_HEIGHT 2))
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
-                             C/MAX_TIME_BEFORE_ASTEROID)))
+                             C/MAX_TIME_BEFORE_ASTEROID)
+               3 0))
 (defn welcome-screen
   []
   (WelcomeScreen.))
