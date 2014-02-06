@@ -36,7 +36,7 @@
                       :medium 50
                       :small  20})
 
-(def ASTEROID_SIZES {:large  45
+(def ASTEROID_SIZES {:large  60
                      :medium 30
                      :small  15})
 

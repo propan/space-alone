@@ -15,6 +15,14 @@
       :right (.fillText ctx text x y)
              (.fillText ctx text (- x (/ dialog-width 2)) y))))
 
+(defn- create-gradient
+  [ctx x y]
+  (doto (.createRadialGradient ctx x y 0 x y 5)
+    (.addColorStop 0 "#FFFFFF")
+    (.addColorStop 0.4 "#FFFFFF")
+    (.addColorStop 0.4 "#FF0000")
+    (.addColorStop 1.0 "#000000")))
+
 (defn- draw-stat-panel
   [context lives score]
   (with-context [ctx context]
@@ -28,6 +36,47 @@
       (draw-text 60 0 (str lives) :center)
       (draw-text 145 0 (str score) :right))))
 
+(defn- stroke-asteroid
+  [ctx type]
+  (case type
+    1 (doto ctx
+        (.moveTo 1 10)
+        (.lineTo 7 8)
+        (.lineTo 9 -4)
+        (.lineTo 6 -5)
+        (.lineTo -4 -4)
+        (.lineTo -7 -7)
+        (.lineTo -10 0)
+        (.lineTo -10 5))
+    2 (doto ctx
+        (.moveTo 0 9)
+        (.lineTo 6 8)
+        (.lineTo 4 -3)
+        (.lineTo -2 -8)
+        (.lineTo -3 -7)
+        (.lineTo -5 -7)
+        (.lineTo -9 4)
+        (.lineTo -4 9))
+    3 (doto ctx
+        (.moveTo 2 8)
+        (.lineTo 6 10)
+        (.lineTo 10 -4)
+        (.lineTo 5 -3)
+        (.lineTo 6 -6)
+        (.lineTo 0 -10)
+        (.lineTo -10 -4)
+        (.lineTo -10 6)
+        (.lineTo -4 9))
+    4 (doto ctx
+        (.moveTo 10 -3)
+        (.lineTo 5 -10)
+        (.lineTo -2 -8)
+        (.lineTo -5 -10)
+        (.lineTo -10 -5)
+        (.lineTo -8 1)
+        (.lineTo -8 10)
+        (.lineTo 7 9))))
+
 ;;
 ;; Drawable Protocol
 ;;
@@ -37,24 +86,20 @@
 
 (extend-type Asteroid
   Drawable
-  (draw [{:keys [x y size]} context]
+  (draw [{:keys [x y size type]} context]
     (with-context [ctx context]
-      (doto ctx
-        (.translate x y)
-        (aset "strokeStyle" "purple")
-        (aset "fillStyle" "purple")
-        (.beginPath)
-        (.arc 0 0 (size C/ASTEROID_SIZES) 0 (* 2 Math/PI) false)
-        (.fill)
-        (.closePath)))))
-
-(defn- create-gradient
-  [ctx x y]
-  (doto (.createRadialGradient ctx x y 0 x y 5)
-    (.addColorStop 0 "#FFFFFF")
-    (.addColorStop 0.4 "#FFFFFF")
-    (.addColorStop 0.4 "#FF0000")
-    (.addColorStop 1.0 "#000000")))
+      (let [a-size (size C/ASTEROID_SIZES)
+            scale  (* 0.1 a-size)
+            width  (/ 30 a-size)]
+        (doto ctx
+          (aset "lineWidth" width)
+          (aset "strokeStyle" "#FFFFFF")
+          (.translate x y)
+          (.scale scale scale)
+          (.beginPath)
+          (stroke-asteroid type)
+          (.closePath)
+          (.stroke))))))
 
 (extend-type Bullet
   Drawable
@@ -113,4 +158,4 @@
         (draw-text 0 0 "SPACE ALONE" :center)
         (aset "font" "14px Raleway")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
-        (draw-text 0 30 "press SPACE to start the game")))))
+        (draw-text 0 30 "press SPACE to start the game" :center)))))

@@ -2,7 +2,7 @@
   (:require [space-alone.constants :as C]
             [space-alone.utils :as u]))
 
-(defrecord Asteroid [x y vX vY energy size])
+(defrecord Asteroid [x y vX vY energy size type])
 
 (defrecord Bullet [x y vX vY energy])
 
@@ -22,7 +22,8 @@
 
 (defn asteroid
   [x y size]
-  (Asteroid. x y (random-speed size) (random-speed size) (size C/ASTEROID_POWERS) size))
+  ;; TODO: improve speed generation to avoid initial blinking on the edge
+  (Asteroid. x y (random-speed size) (random-speed size) (size C/ASTEROID_POWERS) size (u/random-int 1 4)))
 
 (defn bullet
   [x y rotation]
