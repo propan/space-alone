@@ -165,4 +165,4 @@
 (extend-type WelcomeScreen
   Tickable
   (tick [state]
-    state))
+    (update-in state [:asteroids] #(map tick %))))

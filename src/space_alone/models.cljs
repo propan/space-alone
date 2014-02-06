@@ -10,7 +10,7 @@
 
 (defrecord GameScreen [asteroids bullets ship next-asteroid lives score])
 
-(defrecord WelcomeScreen [])
+(defrecord WelcomeScreen [asteroids])
 
 (defn random-speed
   [size direction]
@@ -55,6 +55,8 @@
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
                              C/MAX_TIME_BEFORE_ASTEROID)
                3 0))
+
 (defn welcome-screen
   []
-  (WelcomeScreen.))
+  (WelcomeScreen. (repeatedly 5 #(asteroid (u/random-int C/LEFT_EDGE C/RIGHT_EDGE)
+                                           (u/random-int C/TOP_EDGE C/BOTTOM_EDGE) :large))))

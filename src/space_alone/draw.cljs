@@ -99,7 +99,8 @@
           (.beginPath)
           (stroke-asteroid type)
           (.closePath)
-          (.stroke))))))
+          (.stroke)
+          (.fill))))))
 
 (extend-type Bullet
   Drawable
@@ -148,10 +149,12 @@
 
 (extend-type WelcomeScreen
   Drawable
-  (draw [screen context]
+  (draw [{:keys [asteroids]} context]
+    (.clearRect context 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
+    (doseq [a asteroids]
+      (draw a context))
     (with-context [ctx context]
       (doto ctx
-        (.clearRect 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
         (aset "font" "80px Raleway")
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
