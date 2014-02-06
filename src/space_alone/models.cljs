@@ -13,17 +13,29 @@
 (defrecord WelcomeScreen [])
 
 (defn random-speed
-  [size]
-  (let [direction (if (< (Math/random) 0.5) -1 1)]
-    (case size
-      :large  (* direction (u/random-float 0.01 0.3))
-      :medium (* direction (u/random-float 0.1  0.5))
-      :small  (* direction (u/random-float 0.2  0.8)))))
+  [size direction]
+  (case size
+    :large  (* direction (u/random-float 0.01 0.3))
+    :medium (* direction (u/random-float 0.1  0.5))
+    :small  (* direction (u/random-float 0.2  0.8))))
+
+(defn x-dir
+  [x]
+  (cond
+   (< x C/LEFT_EDGE) 1
+   (> x C/RIGHT_EDGE) -1
+   :else (if (< (Math/random) 0.5) -1 1)))
+
+(defn y-dir
+  [y]
+  (cond
+   (< y C/TOP_EDGE) -1
+   (> y C/BOTTOM_EDGE) 1
+   :else (if (< (Math/random) 0.5) -1 1)))
 
 (defn asteroid
   [x y size]
-  ;; TODO: improve speed generation to avoid initial blinking on the edge
-  (Asteroid. x y (random-speed size) (random-speed size) (size C/ASTEROID_POWERS) size (u/random-int 1 4)))
+  (Asteroid. x y (random-speed size (x-dir x)) (random-speed size (y-dir y)) (size C/ASTEROID_POWERS) size (u/random-int 1 4)))
 
 (defn bullet
   [x y rotation]

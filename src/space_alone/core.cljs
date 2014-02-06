@@ -10,7 +10,6 @@
             [space-alone.tick :as t]))
 
 ;; TODO:
-;; [ ] make asteroids with shapes
 ;; [ ] accurate collision detection
 
 (enable-console-print!)
