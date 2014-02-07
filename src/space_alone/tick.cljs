@@ -15,10 +15,10 @@
      :default               next)))
 
 (defn- next-rotation
-  [rotate rotation]
+  [rotate rotation turn-factor]
   (case rotate
-    :left    (mod (- rotation C/TURN_FACTOR) 360)
-    :right   (mod (+ rotation C/TURN_FACTOR) 360)
+    :left    (mod (- rotation turn-factor) 360)
+    :right   (mod (+ rotation turn-factor) 360)
     rotation))
 
 (defn- next-thrust
@@ -43,9 +43,10 @@
 
 (extend-type Asteroid
   Tickable
-  (tick [{:keys [x y vX vY] :as asteroid}]
-    (merge asteroid {:x (next-position x + vX C/SCREEN_WIDTH)
-                     :y (next-position y + vY C/SCREEN_HEIGHT)})))
+  (tick [{:keys [x y vX vY rotate rotation vR] :as asteroid}]
+    (merge asteroid {:x        (next-position x + vX C/SCREEN_WIDTH)
+                     :y        (next-position y + vY C/SCREEN_HEIGHT)
+                     :rotation (next-rotation rotate rotation vR)})))
 
 (extend-type Bullet
   Tickable
@@ -62,7 +63,7 @@
                    :y          (next-position y - vY C/SCREEN_HEIGHT)
                    :vX         (next-velocity Math/sin vX accelerate rotation thrust)
                    :vY         (next-velocity Math/cos vY accelerate rotation thrust)
-                   :rotation   (next-rotation rotate rotation)
+                   :rotation   (next-rotation rotate rotation C/TURN_FACTOR)
                    :thrust     (next-thrust accelerate thrust)
                    :next-shoot (if shoot?
                                  C/TIME_BETWEEN_SHOOTS
@@ -79,7 +80,7 @@
      (<= side 0.25) (m/asteroid 0 (u/random-int 0 screen-height) :large)
      (<= side 0.50) (m/asteroid screen-width (u/random-int 0 screen-height) :large)
      (<= side 0.75) (m/asteroid (u/random-int 0 screen-width) 0 :large)
-     :default       (m/asteroid (u/random-int 0 screen-width) screen-width :large))))
+     :else          (m/asteroid (u/random-int 0 screen-width) screen-width :large))))
 
 (defn break-asteroid
   [{:keys [x y vX vY size]}]

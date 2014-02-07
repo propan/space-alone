@@ -105,7 +105,7 @@
 
 (extend-type Asteroid
   Drawable
-  (draw [{:keys [x y size type]} context]
+  (draw [{:keys [x y size type rotation]} context]
     (with-context [ctx context]
       (let [a-size (size C/ASTEROID_SIZES)
             scale  (* 0.1 a-size)
@@ -115,6 +115,7 @@
           (aset "strokeStyle" "#FFFFFF")
           (.translate x y)
           (.scale scale scale)
+          (.rotate (* rotation C/RAD_FACTOR))
           (.beginPath)
           (stroke-asteroid type)
           (.closePath)

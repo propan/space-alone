@@ -2,7 +2,7 @@
   (:require [space-alone.constants :as C]
             [space-alone.utils :as u]))
 
-(defrecord Asteroid [x y vX vY energy size type])
+(defrecord Asteroid [x y vX vY energy size type rotate rotation vR])
 
 (defrecord Bullet [x y vX vY energy])
 
@@ -11,6 +11,14 @@
 (defrecord GameScreen [asteroids bullets ship next-asteroid lives score])
 
 (defrecord WelcomeScreen [asteroids])
+
+(defn random-rotation
+  []
+  (let [direction (Math/random)]
+    (cond
+     (< direction 0.33) :left
+     (< direction 0.66) :right
+     :else              :none)))
 
 (defn random-speed
   [size direction]
@@ -35,7 +43,14 @@
 
 (defn asteroid
   [x y size]
-  (Asteroid. x y (random-speed size (x-dir x)) (random-speed size (y-dir y)) (size C/ASTEROID_POWERS) size (u/random-int 1 4)))
+  (Asteroid. x y (random-speed size (x-dir x))
+                 (random-speed size (y-dir y))
+                 (size C/ASTEROID_POWERS)
+                 size
+                 (u/random-int 1 4)
+                 (random-rotation)
+                 0
+                 (u/random-float 0.1 0.6)))
 
 (defn bullet
   [x y rotation]
