@@ -2,7 +2,7 @@
   (:require [space-alone.constants :as C]
             [space-alone.utils :as u]))
 
-(defrecord Asteroid [x y vX vY energy size type rotate rotation vR])
+(defrecord Asteroid [x y vX vY energy size type rotate rotation rotation-speed])
 
 (defrecord Bullet [x y vX vY energy radius])
 

@@ -43,10 +43,10 @@
 
 (extend-type Asteroid
   Tickable
-  (tick [{:keys [x y vX vY rotate rotation vR] :as asteroid}]
+  (tick [{:keys [x y vX vY rotate rotation rotation-speed] :as asteroid}]
     (merge asteroid {:x        (next-position x + vX C/SCREEN_WIDTH)
                      :y        (next-position y + vY C/SCREEN_HEIGHT)
-                     :rotation (next-rotation rotate rotation vR)})))
+                     :rotation (next-rotation rotate rotation rotation-speed)})))
 
 (extend-type Bullet
   Tickable
