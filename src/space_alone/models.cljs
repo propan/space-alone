@@ -4,9 +4,9 @@
 
 (defrecord Asteroid [x y vX vY energy size type rotate rotation vR])
 
-(defrecord Bullet [x y vX vY energy])
+(defrecord Bullet [x y vX vY energy radius])
 
-(defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot])
+(defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
 
 (defrecord GameScreen [asteroids bullets ship next-asteroid lives score])
 
@@ -56,11 +56,11 @@
   [x y rotation]
   (let [vX (* C/BULLET_SPEED (Math/sin (* rotation (- C/RAD_FACTOR))))
         vY (* C/BULLET_SPEED (Math/cos (* rotation (- C/RAD_FACTOR))))]
-    (Bullet. (- x vX) (- y vY) vX vY C/BULLET_ENERGY)))
+    (Bullet. (- x vX) (- y vY) vX vY C/BULLET_ENERGY 5)))
 
 (defn ship
   [x y]
-  (Ship. x y 0 0 0 0 :none false false 0))
+  (Ship. x y 0 0 0 0 :none false false 0 15))
 
 (defn game-screen
   []

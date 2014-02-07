@@ -124,7 +124,7 @@
 
 (extend-type Bullet
   Drawable
-  (draw [{:keys [x y rotation]} context]
+  (draw [{:keys [x y rotation radius]} context]
     (with-context [ctx context]
       (doto ctx
         (aset "shadowBlur" C/SHADOW_BLUR)
@@ -133,7 +133,7 @@
         (.translate x y)
         (.rotate (* rotation C/RAD_FACTOR))
         (.beginPath)
-        (.arc 0 0 5 (* 2 Math/PI) false)
+        (.arc 0 0 radius (* 2 Math/PI) false)
         (.fill)))))
 
 (extend-type Ship

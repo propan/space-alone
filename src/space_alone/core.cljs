@@ -9,9 +9,6 @@
             [space-alone.models :as m]
             [space-alone.tick :as t]))
 
-;; TODO:
-;; [ ] accurate collision detection
-
 (enable-console-print!)
 
 (def controls-start

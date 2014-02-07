@@ -93,7 +93,7 @@
   [o asteroid]
   (<= (u/distance (:x o) (:y o)
                   (:x asteroid) (:y asteroid))
-      ((:size asteroid) C/ASTEROID_SIZES)))
+      (+ ((:size asteroid) C/ASTEROID_SIZES) (:radius o))))
 
 (defn- asteroids-tick
   [asteroids add-asteroid?]
