@@ -23,9 +23,10 @@
 (defn random-speed
   [size direction]
   (case size
-    :large  (* direction (u/random-float 0.01 0.3))
-    :medium (* direction (u/random-float 0.1  0.5))
-    :small  (* direction (u/random-float 0.2  0.8))))
+    4 (* direction (u/random-float 0.01 0.3))
+    3 (* direction (u/random-float 0.1  0.5))
+    2 (* direction (u/random-float 0.2  0.7))
+    1 (* direction (u/random-float 0.3  0.9))))
 
 (defn x-dir
   [x]
@@ -45,7 +46,7 @@
   [x y size]
   (Asteroid. x y (random-speed size (x-dir x))
                  (random-speed size (y-dir y))
-                 (size C/ASTEROID_POWERS)
+                 (* size 30)
                  size
                  (u/random-int 1 4)
                  (random-rotation)
@@ -74,4 +75,4 @@
 (defn welcome-screen
   []
   (WelcomeScreen. (repeatedly 5 #(asteroid (u/random-int C/LEFT_EDGE C/RIGHT_EDGE)
-                                           (u/random-int C/TOP_EDGE C/BOTTOM_EDGE) :large))))
+                                           (u/random-int C/TOP_EDGE C/BOTTOM_EDGE) 4))))

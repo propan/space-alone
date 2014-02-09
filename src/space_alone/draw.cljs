@@ -107,9 +107,9 @@
   Drawable
   (draw [{:keys [x y size type rotation]} context]
     (with-context [ctx context]
-      (let [a-size (size C/ASTEROID_SIZES)
-            scale  (* 0.1 a-size)
-            width  (/ 30 a-size)]
+      (let [radius (* size C/ASTEROID_UNIT_SIZE)
+            scale  (* 1.5 size)
+            width  (* 3.0 (/ 1.5 size))]
         (doto ctx
           (aset "lineWidth" width)
           (aset "strokeStyle" "#FFFFFF")

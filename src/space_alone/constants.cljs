@@ -16,11 +16,6 @@
 (def SHIP_WIDTH 14)
 (def SHIP_HEIGHT 28)
 
-;; rewards
-(def REWARDS {:large  150
-              :medium 75
-              :small  15})
-
 ;; movement constants
 (def MAX_VELOCITY 6)
 (def MAX_THRUST 2)
@@ -39,13 +34,8 @@
 (def MIN_TIME_BEFORE_ASTEROID 250)
 (def MAX_TIME_BEFORE_ASTEROID 500)
 
-(def ASTEROID_POWERS {:large  80
-                      :medium 50
-                      :small  20})
-
-(def ASTEROID_SIZES {:large  60
-                     :medium 30
-                     :small  15})
+(def ASTEROID_UNIT_SIZE 16)
+(def ASTEROID_UNIT_REWARD 100)
 
 ;; controls
 (def SPACE 32)

@@ -77,23 +77,24 @@
   [screen-width screen-height]
   (let [side (Math/random)]
     (cond
-     (<= side 0.25) (m/asteroid 0 (u/random-int 0 screen-height) :large)
-     (<= side 0.50) (m/asteroid screen-width (u/random-int 0 screen-height) :large)
-     (<= side 0.75) (m/asteroid (u/random-int 0 screen-width) 0 :large)
-     :else          (m/asteroid (u/random-int 0 screen-width) screen-width :large))))
+     (<= side 0.25) (m/asteroid 0 (u/random-int 0 screen-height) 4)
+     (<= side 0.50) (m/asteroid screen-width (u/random-int 0 screen-height) 4)
+     (<= side 0.75) (m/asteroid (u/random-int 0 screen-width) 0 4)
+     :else          (m/asteroid (u/random-int 0 screen-width) screen-width 4))))
 
 (defn break-asteroid
   [{:keys [x y vX vY size]}]
   (case size
-    :large (take 4 (repeatedly #(m/asteroid x y :medium)))
-    :medium (take 4 (repeatedly #(m/asteroid x y :small)))
-    :small nil))
+    4 (take 4 (repeatedly #(m/asteroid x y 3)))
+    3 (take 4 (repeatedly #(m/asteroid x y 2)))
+    2 (take 4 (repeatedly #(m/asteroid x y 1)))
+    1 nil))
 
 (defn hit?
   [o asteroid]
   (<= (u/distance (:x o) (:y o)
                   (:x asteroid) (:y asteroid))
-      (+ ((:size asteroid) C/ASTEROID_SIZES) (:radius o))))
+      (+ (* (:size asteroid) C/ASTEROID_UNIT_SIZE) (:radius o))))
 
 (defn- asteroids-tick
   [asteroids add-asteroid?]
@@ -140,7 +141,7 @@
           (let [energy-left (- energy (:energy hit))]
             (if (pos? energy-left)
               (recur (rest asteroids) bullets (cons (assoc asteroid :energy energy-left) res) points)
-              (recur (rest asteroids) bullets (concat res (break-asteroid asteroid)) (+ points (size C/REWARDS)))))
+              (recur (rest asteroids) bullets (concat res (break-asteroid asteroid)) (+ points (* size C/ASTEROID_UNIT_REWARD)))))
           (recur (rest asteroids) bullets (cons asteroid res) points))))))
 
 (defn detect-collision
