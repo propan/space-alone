@@ -158,8 +158,8 @@
 
 (extend-type GameScreen
   Drawable
-  (draw [{:keys [ship bullets asteroids lives score]} context]
-    (.clearRect context 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
+  (draw [{:keys [background-image ship bullets asteroids lives score]} context]
+    (.drawImage context background-image 0 0)
     (doseq [b bullets]
       (draw b context))
     (doseq [a asteroids]
@@ -169,8 +169,8 @@
 
 (extend-type WelcomeScreen
   Drawable
-  (draw [{:keys [asteroids]} context]
-    (.clearRect context 0 0 C/SCREEN_WIDTH C/SCREEN_HEIGHT)
+  (draw [{:keys [background-image asteroids]} context]
+    (.drawImage context background-image 0 0)
     (doseq [a asteroids]
       (draw a context))
     (with-context [ctx context]

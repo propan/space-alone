@@ -8,9 +8,9 @@
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
 
-(defrecord GameScreen [asteroids bullets ship next-asteroid lives score])
+(defrecord GameScreen [background-image asteroids bullets ship next-asteroid lives score])
 
-(defrecord WelcomeScreen [asteroids])
+(defrecord WelcomeScreen [background-image asteroids])
 
 (defn random-rotation
   []
@@ -65,7 +65,8 @@
 
 (defn game-screen
   []
-  (GameScreen. [] []
+  (GameScreen. (u/image "resources/images/background.jpg")
+               [] []
                (ship (/ C/SCREEN_WIDTH 2)
                      (/ C/SCREEN_HEIGHT 2))
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
@@ -74,5 +75,6 @@
 
 (defn welcome-screen
   []
-  (WelcomeScreen. (repeatedly 5 #(asteroid (u/random-int C/LEFT_EDGE C/RIGHT_EDGE)
+  (WelcomeScreen. (u/image "resources/images/background.jpg")
+                  (repeatedly 5 #(asteroid (u/random-int C/LEFT_EDGE C/RIGHT_EDGE)
                                            (u/random-int C/TOP_EDGE C/BOTTOM_EDGE) 4))))

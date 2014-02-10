@@ -12,10 +12,6 @@
 (def TOP_EDGE 5)
 (def BOTTOM_EDGE (- SCREEN_HEIGHT TOP_EDGE))
 
-;; ship dimensions
-(def SHIP_WIDTH 14)
-(def SHIP_HEIGHT 28)
-
 ;; movement constants
 (def MAX_VELOCITY 6)
 (def MAX_THRUST 2)
@@ -26,7 +22,7 @@
 (def ACCELERATION 0.01)
 
 ;; shooting constants
-(def TIME_BETWEEN_SHOOTS 25)
+(def TIME_BETWEEN_SHOOTS 20)
 (def BULLET_SPEED 15)
 (def BULLET_ENERGY 35)
 

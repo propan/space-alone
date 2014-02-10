@@ -13,3 +13,9 @@
   (let [dx (- x2 x1)
         dy (- y2 y1)]
     (Math/sqrt (+ (* dx dx) (* dy dy)))))
+
+(defn image
+  [src]
+  (let [image (js/Image.)]
+    (set! (.-src image) src)
+    image))
