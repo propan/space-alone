@@ -118,11 +118,11 @@
          bullets bullets]
     (if (or (not (nil? hit))
             (empty? bullets))
-      {:hit hit :bullets (concat res bullets)}
+      {:hit hit :bullets (into res bullets)}
       (let [bullet (first bullets)]
         (if (hit? bullet asteroid)
           (recur bullet res (rest bullets))
-          (recur nil (cons bullet res) (rest bullets)))))))
+          (recur nil (conj res bullet) (rest bullets)))))))
 
 (defn handle-bullet-hits
   [{:keys [asteroids bullets score] :as state}]
@@ -132,17 +132,17 @@
          points    score]
     (if (or (empty? asteroids)
             (empty? bullets))
-      (merge state {:asteroids (concat res asteroids)
+      (merge state {:asteroids (into res asteroids)
                     :bullets   bullets
                     :score     points})
       (let [{:keys [energy size] :as asteroid} (first asteroids)
-            {:keys [hit bullets]}         (find-hit asteroid bullets)]
+            {:keys [hit bullets]}              (find-hit asteroid bullets)]
         (if-not (nil? hit)
           (let [energy-left (- energy (:energy hit))]
             (if (pos? energy-left)
-              (recur (rest asteroids) bullets (cons (assoc asteroid :energy energy-left) res) points)
-              (recur (rest asteroids) bullets (concat res (break-asteroid asteroid)) (+ points (* size C/ASTEROID_UNIT_REWARD)))))
-          (recur (rest asteroids) bullets (cons asteroid res) points))))))
+              (recur (rest asteroids) bullets (conj res (assoc asteroid :energy energy-left)) points)
+              (recur (rest asteroids) bullets (into res (break-asteroid asteroid)) (+ points (* size C/ASTEROID_UNIT_REWARD)))))
+          (recur (rest asteroids) bullets (conj res asteroid) points))))))
 
 (defn detect-collision
   [{:keys [ship asteroids] :as state}]
