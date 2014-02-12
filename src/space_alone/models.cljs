@@ -6,9 +6,11 @@
 
 (defrecord Bullet [x y vX vY energy radius])
 
+(defrecord Particle [x y vX vY radius color lifespan])
+
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
 
-(defrecord GameScreen [background-image asteroids bullets ship next-asteroid lives score])
+(defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score])
 
 (defrecord WelcomeScreen [background-image asteroids])
 
@@ -59,6 +61,13 @@
         vY (* C/BULLET_SPEED (Math/cos (* rotation (- C/RAD_FACTOR))))]
     (Bullet. (- x vX) (- y vY) vX vY C/BULLET_ENERGY 5)))
 
+(defn particle
+  [x y]
+  (let [rotation (u/random-int 0 360)
+        vX       (* (u/random-float 1.5 4.5) (Math/sin (* rotation (- C/RAD_FACTOR))))
+        vY       (* (u/random-float 1.5 4.5) (Math/cos (* rotation (- C/RAD_FACTOR))))]
+    (Particle. x y vX vY (u/random-int 1 5) "#FFB236" (u/random-int 15 45))))
+
 (defn ship
   [x y]
   (Ship. x y 0 0 0 0 :none false false 0 15))
@@ -69,6 +78,7 @@
                [] []
                (ship (/ C/SCREEN_WIDTH 2)
                      (/ C/SCREEN_HEIGHT 2))
+               []
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
                              C/MAX_TIME_BEFORE_ASTEROID)
                3 0))

@@ -1,6 +1,6 @@
 (ns space-alone.tick
   (:require [space-alone.constants :as C]
-            [space-alone.models :as m :refer [Asteroid Bullet Ship GameScreen WelcomeScreen]]
+            [space-alone.models :as m :refer [Asteroid Bullet Particle Ship GameScreen WelcomeScreen]]
             [space-alone.utils :as u]))
 
 ;;
@@ -54,6 +54,13 @@
     (merge bullet {:x      (next-position x - vX C/SCREEN_WIDTH)
                    :y      (next-position y - vY C/SCREEN_HEIGHT)
                    :energy (dec energy)})))
+
+(extend-type Particle
+  Tickable
+  (tick [{:keys [x y vX vY lifespan] :as particle}]
+    (merge particle {:x        (next-position x - vX C/SCREEN_WIDTH)
+                     :y        (next-position y - vY C/SCREEN_HEIGHT)
+                     :lifespan (dec lifespan)})))
 
 (extend-type Ship
   Tickable
@@ -111,6 +118,12 @@
        (map tick)
        (filter #(pos? (:energy %)))))
 
+(defn- effects-tick
+  [effects]
+  (->> effects
+       (map tick effects)
+       (filter #(pos? (:lifespan %)))))
+
 (defn find-hit
   [asteroid bullets]
   (loop [hit     nil
@@ -124,25 +137,31 @@
           (recur bullet res (rest bullets))
           (recur nil (conj res bullet) (rest bullets)))))))
 
+(defn create-hit-effect
+  [{:keys [x y]}]
+  (repeatedly (u/random-int 4 12) #(m/particle x y)))
+
 (defn handle-bullet-hits
-  [{:keys [asteroids bullets score] :as state}]
-  (loop [asteroids asteroids
-         bullets   bullets
-         res       []
-         points    score]
+  [{:keys [asteroids bullets effects score] :as state}]
+  (loop [asteroids   asteroids
+         bullets     bullets
+         res         []
+         new-effects []
+         points      score]
     (if (or (empty? asteroids)
             (empty? bullets))
       (merge state {:asteroids (into res asteroids)
                     :bullets   bullets
+                    :effects   (concat new-effects effects)
                     :score     points})
       (let [{:keys [energy size] :as asteroid} (first asteroids)
             {:keys [hit bullets]}              (find-hit asteroid bullets)]
         (if-not (nil? hit)
           (let [energy-left (- energy (:energy hit))]
             (if (pos? energy-left)
-              (recur (rest asteroids) bullets (conj res (assoc asteroid :energy energy-left)) points)
-              (recur (rest asteroids) bullets (into res (break-asteroid asteroid)) (+ points (* size C/ASTEROID_UNIT_REWARD)))))
-          (recur (rest asteroids) bullets (conj res asteroid) points))))))
+              (recur (rest asteroids) bullets (conj res (assoc asteroid :energy energy-left)) (into new-effects (create-hit-effect hit)) points)
+              (recur (rest asteroids) bullets (into res (break-asteroid asteroid)) new-effects (+ points (* size C/ASTEROID_UNIT_REWARD)))))
+          (recur (rest asteroids) bullets (conj res asteroid) new-effects points))))))
 
 (defn detect-collision
   [{:keys [ship asteroids] :as state}]
@@ -152,11 +171,12 @@
 
 (extend-type GameScreen
   Tickable
-  (tick [{:keys [ship bullets asteroids next-asteroid] :as state}]
+  (tick [{:keys [ship bullets asteroids effects next-asteroid] :as state}]
     (let [{:keys [x y rotation shoot next-shoot]} ship]
       (-> state
           (merge {:asteroids     (asteroids-tick asteroids (zero? next-asteroid))
                   :bullets       (bullets-tick bullets (and shoot (zero? next-shoot)) x y rotation)
+                  :effects       (effects-tick effects)
                   :ship          (tick ship)
                   :next-asteroid (if (zero? next-asteroid)
                                    (u/random-int C/MIN_TIME_BEFORE_ASTEROID C/MAX_TIME_BEFORE_ASTEROID)

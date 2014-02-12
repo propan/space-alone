@@ -1,7 +1,7 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid Bullet Ship GameScreen WelcomeScreen]]))
+            [space-alone.models :refer [Asteroid Bullet Particle Ship GameScreen WelcomeScreen]]))
 
 ;
 ; Helpers
@@ -16,11 +16,11 @@
              (.fillText ctx text (- x (/ dialog-width 2)) y))))
 
 (defn- create-gradient
-  [ctx x y]
-  (doto (.createRadialGradient ctx x y 0 x y 5)
+  [ctx x y radius color]
+  (doto (.createRadialGradient ctx x y 0 x y radius)
     (.addColorStop 0 "#FFFFFF")
     (.addColorStop 0.4 "#FFFFFF")
-    (.addColorStop 0.4 "#FF0000")
+    (.addColorStop 0.4 color)
     (.addColorStop 1.0 "#000000")))
 
 (defn- draw-stat-panel
@@ -129,9 +129,23 @@
       (doto ctx
         (aset "shadowBlur" C/SHADOW_BLUR)
         (aset "shadowColor" "#FF0000")
-        (aset "fillStyle" (create-gradient ctx 0 0))
+        (aset "fillStyle" (create-gradient ctx 0 0 radius "#FF0000"))
         (.translate x y)
         (.rotate (* rotation C/RAD_FACTOR))
+        (.beginPath)
+        (.arc 0 0 radius (* 2 Math/PI) false)
+        (.fill)))))
+
+(extend-type Particle
+  Drawable
+  (draw [{:keys [x y radius color lifespan]} context]
+    (with-context [ctx context]
+      (doto ctx
+        (aset "globalCompositeOperation" "lighter")
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" radius)
+        (aset "fillStyle" (create-gradient ctx 0 0 radius color))
+        (.translate x y)
         (.beginPath)
         (.arc 0 0 radius (* 2 Math/PI) false)
         (.fill)))))
@@ -158,12 +172,14 @@
 
 (extend-type GameScreen
   Drawable
-  (draw [{:keys [background-image ship bullets asteroids lives score]} context]
+  (draw [{:keys [background-image ship bullets asteroids effects lives score]} context]
     (.drawImage context background-image 0 0)
     (doseq [b bullets]
       (draw b context))
     (doseq [a asteroids]
       (draw a context))
+    (doseq [e effects]
+      (draw e context))
     (draw ship context)
     (draw-stat-panel context lives score)))
 
