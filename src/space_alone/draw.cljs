@@ -38,63 +38,11 @@
 
 (defn- stroke-asteroid
   [ctx type]
-  (case type
-    1 (doto ctx
-        (.moveTo 9 6)
-        (.lineTo 4 8)
-        (.lineTo 2 11)
-        (.lineTo -2 9)
-        (.lineTo -3 9)
-        (.lineTo -5 10)
-        (.lineTo -8 6)
-        (.lineTo -11 2)
-        (.lineTo -9 -1)
-        (.lineTo -11 -3)
-        (.lineTo -10 -6)
-        (.lineTo -9 -8)
-        (.lineTo -2 -9)
-        (.lineTo 1 -8)
-        (.lineTo 2 -10)
-        (.lineTo 4 -8)
-        (.lineTo 10 -7))
-    2 (doto ctx
-        (.moveTo 0 11)
-        (.lineTo -1 9)
-        (.lineTo -6 7)
-        (.lineTo -9 8)
-        (.lineTo -11 7)
-        (.lineTo -10 0)
-        (.lineTo -10 -4)
-        (.lineTo -7 -9)
-        (.lineTo -1 -10)
-        (.lineTo 2 -8)
-        (.lineTo 4 -10)
-        (.lineTo 5 -9)
-        (.lineTo 9 -8)
-        (.lineTo 8 -7)
-        (.lineTo 10 -4)
-        (.lineTo 11 -2)
-        (.lineTo 10 1)
-        (.lineTo 7 7))
-    3 (doto ctx
-        (.moveTo 2 8)
-        (.lineTo 6 10)
-        (.lineTo 10 -4)
-        (.lineTo 5 -3)
-        (.lineTo 6 -6)
-        (.lineTo 0 -10)
-        (.lineTo -10 -4)
-        (.lineTo -10 6)
-        (.lineTo -4 9))
-    4 (doto ctx
-        (.moveTo 10 -3)
-        (.lineTo 5 -10)
-        (.lineTo -2 -8)
-        (.lineTo -5 -10)
-        (.lineTo -10 -5)
-        (.lineTo -8 1)
-        (.lineTo -8 10)
-        (.lineTo 7 9))))
+  (let [points (get C/ASTEROID_POINTS type)
+        [x y]  (first points)]
+    (.moveTo ctx x y)
+    (doseq [[x y] (rest points)]
+      (.lineTo ctx x y))))
 
 ;;
 ;; Drawable Protocol
