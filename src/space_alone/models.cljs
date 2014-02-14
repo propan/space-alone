@@ -64,7 +64,7 @@
                   (u/random-float 0.1 0.4)
                   (random-rotation) rotation
                   (u/random-float 0.1 0.5)
-                  "#FFFFFF"
+                  "#FF3030"
                   (u/random-int 30 60)))
 
 (defn bullet

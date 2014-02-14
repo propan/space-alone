@@ -60,7 +60,7 @@
             width  (* 3.0 (/ 1.5 size))]
         (doto ctx
           (aset "lineWidth" width)
-          (aset "strokeStyle" "#FFFFFF")
+          (aset "strokeStyle" "#C0C0C0")
           (.translate x y)
           (.scale scale scale)
           (.rotate (* rotation C/RAD_FACTOR))
