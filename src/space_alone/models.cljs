@@ -4,6 +4,8 @@
 
 (defrecord Asteroid [x y vX vY energy size type rotate rotation rotation-speed])
 
+(defrecord AsteroidPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan])
+
 (defrecord Bullet [x y vX vY energy radius])
 
 (defrecord Particle [x y vX vY radius color lifespan])
@@ -54,6 +56,16 @@
                  (random-rotation)
                  0
                  (u/random-float 0.1 0.6)))
+
+(defn asteroid-piece
+  [x y lx ly rx ry size rotation]
+  (AsteroidPiece. x y lx ly rx ry size
+                  (u/random-float 0.1 0.4)
+                  (u/random-float 0.1 0.4)
+                  (random-rotation) rotation
+                  (u/random-float 0.1 0.5)
+                  "#FFFFFF"
+                  (u/random-int 30 60)))
 
 (defn bullet
   [x y rotation]

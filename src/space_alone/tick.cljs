@@ -1,6 +1,6 @@
 (ns space-alone.tick
   (:require [space-alone.constants :as C]
-            [space-alone.models :as m :refer [Asteroid Bullet Particle Ship GameScreen WelcomeScreen]]
+            [space-alone.models :as m :refer [Asteroid AsteroidPiece Bullet Particle Ship GameScreen WelcomeScreen]]
             [space-alone.utils :as u]))
 
 ;;
@@ -47,6 +47,14 @@
     (merge asteroid {:x        (next-position x + vX C/SCREEN_WIDTH)
                      :y        (next-position y + vY C/SCREEN_HEIGHT)
                      :rotation (next-rotation rotate rotation rotation-speed)})))
+
+(extend-type AsteroidPiece
+  Tickable
+  (tick [{:keys [x y vX vY rotate rotation rotation-speed lifespan] :as asteroid-piece}]
+    (merge asteroid-piece {:x        (next-position x + vX C/SCREEN_WIDTH)
+                           :y        (next-position y + vY C/SCREEN_HEIGHT)
+                           :rotation (next-rotation rotate rotation rotation-speed)
+                           :lifespan (dec lifespan)})))
 
 (extend-type Bullet
   Tickable
@@ -96,6 +104,13 @@
     3 (take 4 (repeatedly #(m/asteroid x y 2)))
     2 (take 4 (repeatedly #(m/asteroid x y 1)))
     1 nil))
+
+(defn create-asteroid-break-effect
+  [{:keys [x y type size rotation] :as a}]
+  (let [points (get C/ASTEROID_POINTS type)
+        pieces (partition 2 1 (take 1 points) points)]
+    (map (fn [[[lx ly] [rx ry]]]
+           (m/asteroid-piece x y lx ly rx ry size rotation)) pieces)))
 
 (defn hit?
   [o asteroid]
@@ -159,8 +174,14 @@
         (if-not (nil? hit)
           (let [energy-left (- energy (:energy hit))]
             (if (pos? energy-left)
-              (recur (rest asteroids) bullets (conj res (assoc asteroid :energy energy-left)) (into new-effects (create-hit-effect hit)) points)
-              (recur (rest asteroids) bullets (into res (break-asteroid asteroid)) new-effects (+ points (* size C/ASTEROID_UNIT_REWARD)))))
+              (recur (rest asteroids) bullets
+                     (conj res (assoc asteroid :energy energy-left))
+                     (into new-effects (create-hit-effect hit))
+                     points)
+              (recur (rest asteroids) bullets
+                     (into res (break-asteroid asteroid))
+                     (into new-effects (create-asteroid-break-effect asteroid))
+                     (+ points (* size C/ASTEROID_UNIT_REWARD)))))
           (recur (rest asteroids) bullets (conj res asteroid) new-effects points))))))
 
 (defn detect-collision
