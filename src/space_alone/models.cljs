@@ -4,9 +4,9 @@
 
 (defrecord Asteroid [x y vX vY energy size type rotate rotation rotation-speed])
 
-(defrecord AsteroidPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan ticks-left])
-
 (defrecord Bullet [x y vX vY energy radius])
+
+(defrecord ObjectPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan ticks-left])
 
 (defrecord Particle [x y vX vY radius color lifespan ticks-left])
 
@@ -15,6 +15,8 @@
 (defrecord TextEffect [x y text scale lifespan ticks-left])
 
 (defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score])
+
+(defrecord GameOverScreen [background-image asteroids bullets effects score])
 
 (defrecord WelcomeScreen [background-image asteroids])
 
@@ -62,20 +64,32 @@
 (defn asteroid-piece
   [x y lx ly rx ry size rotation]
   (let [lifespan (u/random-int 30 60)]
-    (AsteroidPiece. x y lx ly rx ry size
-                    (u/random-float 0.1 0.4)
-                    (u/random-float 0.1 0.4)
-                    (random-rotation) rotation
-                    (u/random-float 0.1 0.5)
-                    "#FF3030"
-                    lifespan
-                    lifespan)))
+    (ObjectPiece. x y lx ly rx ry size
+                  (u/random-float 0.1 0.4)
+                  (u/random-float 0.1 0.4)
+                  (random-rotation) rotation
+                  (u/random-float 0.1 0.5)
+                  C/ASTEROID_PIECE_COLOR
+                  lifespan
+                  lifespan)))
 
 (defn bullet
   [x y rotation]
   (let [vX (* C/BULLET_SPEED (Math/sin (* rotation (- C/RAD_FACTOR))))
         vY (* C/BULLET_SPEED (Math/cos (* rotation (- C/RAD_FACTOR))))]
     (Bullet. (- x vX) (- y vY) vX vY C/BULLET_ENERGY 5)))
+
+(defn ship-piece
+  [x y lx ly rx ry vX vY rotation]
+  (let [lifespan (u/random-int 40 80)]
+    (ObjectPiece. x y lx ly rx ry 1
+                  (+ (* 0.1 vX) (u/random-float 0.5 1.5))
+                  (+ (* 0.1 vY) (u/random-float 0.5 1.5))
+                  (random-rotation) rotation
+                  (u/random-float 0.2 0.5)
+                  C/SHIP_COLOR
+                  lifespan
+                  lifespan)))
 
 (defn particle
   [x y]
@@ -103,6 +117,10 @@
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
                              C/MAX_TIME_BEFORE_ASTEROID)
                3 0))
+
+(defn game-over-screen
+  [{:keys [background-image asteroids bullets effects score]}]
+  (GameOverScreen. background-image asteroids bullets effects score))
 
 (defn welcome-screen
   []

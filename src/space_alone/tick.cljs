@@ -1,7 +1,7 @@
 (ns space-alone.tick
   (:require [space-alone.constants :as C]
-            [space-alone.models :as m :refer [Asteroid AsteroidPiece Bullet Particle
-                                              Ship TextEffect GameScreen WelcomeScreen]]
+            [space-alone.models :as m :refer [Asteroid Bullet ObjectPiece Particle Ship TextEffect
+                                              GameScreen GameOverScreen WelcomeScreen]]
             [space-alone.utils :as u]))
 
 ;;
@@ -49,20 +49,20 @@
                      :y        (next-position y + vY C/SCREEN_HEIGHT)
                      :rotation (next-rotation rotate rotation rotation-speed)})))
 
-(extend-type AsteroidPiece
-  Tickable
-  (tick [{:keys [x y vX vY rotate rotation rotation-speed ticks-left] :as asteroid-piece}]
-    (merge asteroid-piece {:x          (next-position x + vX C/SCREEN_WIDTH)
-                           :y          (next-position y + vY C/SCREEN_HEIGHT)
-                           :rotation   (next-rotation rotate rotation rotation-speed)
-                           :ticks-left (dec ticks-left)})))
-
 (extend-type Bullet
   Tickable
   (tick [{:keys [x y vX vY energy] :as bullet}]
     (merge bullet {:x      (next-position x - vX C/SCREEN_WIDTH)
                    :y      (next-position y - vY C/SCREEN_HEIGHT)
                    :energy (dec energy)})))
+
+(extend-type ObjectPiece
+  Tickable
+  (tick [{:keys [x y vX vY rotate rotation rotation-speed ticks-left] :as asteroid-piece}]
+    (merge asteroid-piece {:x          (next-position x + vX C/SCREEN_WIDTH)
+                           :y          (next-position y + vY C/SCREEN_HEIGHT)
+                           :rotation   (next-rotation rotate rotation rotation-speed)
+                           :ticks-left (dec ticks-left)})))
 
 (extend-type Particle
   Tickable
@@ -92,6 +92,32 @@
                    :ticks-left (dec ticks-left)})))
 
 ;;
+;; Effects
+;;
+
+(defn create-hit-effect
+  [{:keys [x y]}]
+  (repeatedly (u/random-int 4 12) #(m/particle x y)))
+
+(defn create-asteroid-break-effect
+  [{:keys [x y type size rotation] :as a} reward]
+  (let [points (get C/ASTEROID_POINTS type)
+        pieces (partition 2 1 (take 1 points) points)]
+    (cons
+     (m/text-effect (str reward) x y)
+     (map (fn [[[lx ly] [rx ry]]]
+            (m/asteroid-piece x y lx ly rx ry size rotation)) pieces))))
+
+(defn create-ship-explosion-effect
+  [{:keys [x y vX vY rotation] :as ship}]
+  (let [points [[-10 10] [0 -15] [10 10] [7 5] [-7 5]]
+        pieces (partition 2 1 (take 1 points) points)]
+    (concat
+     (create-hit-effect ship)
+     (map (fn [[[lx ly] [rx ry]]]
+            (m/ship-piece x y lx ly rx ry vX vY rotation)) pieces))))
+
+;;
 ;; Game Screen
 ;;
 
@@ -111,15 +137,6 @@
     3 (take 4 (repeatedly #(m/asteroid x y 2)))
     2 (take 4 (repeatedly #(m/asteroid x y 1)))
     1 nil))
-
-(defn create-asteroid-break-effect
-  [{:keys [x y type size rotation] :as a} reward]
-  (let [points (get C/ASTEROID_POINTS type)
-        pieces (partition 2 1 (take 1 points) points)]
-    (cons
-     (m/text-effect (str reward) x y)
-     (map (fn [[[lx ly] [rx ry]]]
-            (m/asteroid-piece x y lx ly rx ry size rotation)) pieces))))
 
 (defn hit?
   [o asteroid]
@@ -161,10 +178,6 @@
           (recur bullet res (rest bullets))
           (recur nil (conj res bullet) (rest bullets)))))))
 
-(defn create-hit-effect
-  [{:keys [x y]}]
-  (repeatedly (u/random-int 4 12) #(m/particle x y)))
-
 (defn handle-bullet-hits
   [{:keys [asteroids bullets effects score] :as state}]
   (loop [asteroids   asteroids
@@ -195,9 +208,14 @@
           (recur (rest asteroids) bullets (conj res asteroid) new-effects points))))))
 
 (defn detect-collision
-  [{:keys [ship asteroids] :as state}]
+  [{:keys [ship asteroids lives] :as state}]
   (if (some #(hit? ship %) asteroids)
-    (m/welcome-screen)
+    (let [lives (dec lives)]
+      (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
+              (>= lives 0) (merge {:lives lives
+                                   :ship  (m/ship (/ C/SCREEN_WIDTH 2)
+                                                  (/ C/SCREEN_HEIGHT 2))})
+              (neg? lives) (m/game-over-screen)))
     state))
 
 (extend-type GameScreen
@@ -214,6 +232,15 @@
                                    (max 0 (dec next-asteroid)))})
           (handle-bullet-hits)
           (detect-collision)))))
+
+(extend-type GameOverScreen
+  Tickable
+  (tick [{:keys [bullets asteroids effects] :as state}]
+    (-> state
+        (merge {:asteroids (asteroids-tick asteroids false)
+                :bullets   (bullets-tick bullets false 0 0 0)
+                :effects   (effects-tick effects)})
+        (handle-bullet-hits))))
 
 (extend-type WelcomeScreen
   Tickable

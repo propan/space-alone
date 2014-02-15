@@ -1,8 +1,8 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid AsteroidPiece Bullet Particle
-                                        Ship TextEffect GameScreen WelcomeScreen]]))
+            [space-alone.models :refer [Asteroid Bullet ObjectPiece Particle Ship TextEffect
+                                        GameScreen GameOverScreen WelcomeScreen]]))
 
 ;
 ; Helpers
@@ -71,7 +71,20 @@
           (.stroke)
           (.fill))))))
 
-(extend-type AsteroidPiece
+(extend-type Bullet
+  Drawable
+  (draw [{:keys [x y radius]} context]
+    (with-context [ctx context]
+      (doto ctx
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" "#FF0000")
+        (aset "fillStyle" (create-gradient ctx 0 0 radius "#FF0000"))
+        (.translate x y)
+        (.beginPath)
+        (.arc 0 0 radius (* 2 Math/PI) false)
+        (.fill)))))
+
+(extend-type ObjectPiece
   Drawable
   (draw [{:keys [x y lx ly rx ry size rotation color]} context]
     (with-context [ctx context]
@@ -90,19 +103,6 @@
           (.lineTo rx ry)
           (.closePath)
           (.stroke))))))
-
-(extend-type Bullet
-  Drawable
-  (draw [{:keys [x y radius]} context]
-    (with-context [ctx context]
-      (doto ctx
-        (aset "shadowBlur" C/SHADOW_BLUR)
-        (aset "shadowColor" "#FF0000")
-        (aset "fillStyle" (create-gradient ctx 0 0 radius "#FF0000"))
-        (.translate x y)
-        (.beginPath)
-        (.arc 0 0 radius (* 2 Math/PI) false)
-        (.fill)))))
 
 (extend-type Particle
   Drawable
@@ -124,8 +124,8 @@
     (with-context [ctx context]
       (doto ctx
         (aset "shadowBlur" C/SHADOW_BLUR)
-        (aset "shadowColor" "#0000FF")
-        (aset "strokeStyle" "#0000FF")
+        (aset "shadowColor" C/SHIP_COLOR)
+        (aset "strokeStyle" C/SHIP_COLOR)
         (aset "lineWidth" 2.5)
         (.translate x y)
         (.rotate (* rotation C/RAD_FACTOR))
@@ -165,6 +165,26 @@
       (draw e context))
     (draw ship context)
     (draw-stat-panel context lives score)))
+
+(extend-type GameOverScreen
+  Drawable
+  (draw [{:keys [background-image asteroids bullets effects score]} context]
+    (.drawImage context background-image 0 0)
+    (doseq [b bullets]
+      (draw b context))
+    (doseq [a asteroids]
+      (draw a context))
+    (doseq [e effects]
+      (draw e context))
+    (with-context [ctx context]
+      (doto ctx
+        (aset "font" "80px Raleway")
+        (aset "fillStyle" "#FFFFFF")
+        (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
+        (draw-text 0 0 "GAME OVER" :center)
+        (aset "font" "14px Raleway")
+        (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
+        (draw-text 0 50 "press SPACE to start the game" :center)))))
 
 (extend-type WelcomeScreen
   Drawable
