@@ -1,6 +1,6 @@
 (ns space-alone.core
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :as a :refer [<! put! get! chan filter< map<]]
+  (:require [cljs.core.async :as a :refer [<! put! chan filter< map<]]
             [clojure.browser.dom :as dom]
             [goog.events :as events]
             [space-alone.control :as ctrl]

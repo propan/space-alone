@@ -10,11 +10,14 @@
 
   :source-paths ["src"]
 
-  :cljsbuild { 
-    :builds [{:id "space-alone"
-              :source-paths ["src"]
-              :compiler {
-                :output-to "space_alone.js"
-                :output-dir "out"
-                :optimizations :none
-                :source-map true}}]})
+  :cljsbuild {:builds {:dev
+                       {:source-paths ["src"]
+                        :compiler {:output-to     "out/space_alone.js"
+                                   :output-dir    "out"
+                                   :optimizations :none
+                                   :source-map    true}}
+                       :prod
+                       {:source-paths ["src"]
+                        :compiler {:output-to     "out/space_alone.min.js"
+                                   :optimizations :advanced
+                                   :pretty-print  false}}}})
