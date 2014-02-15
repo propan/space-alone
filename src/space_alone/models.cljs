@@ -12,9 +12,9 @@
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
 
-(defrecord TextEffect [x y text scale lifespan ticks-left])
+(defrecord TextEffect [x y text scale scale-speed color lifespan ticks-left])
 
-(defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score])
+(defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score wave asteroids-left])
 
 (defrecord GameOverScreen [background-image asteroids bullets effects score])
 
@@ -54,7 +54,7 @@
   [x y size]
   (Asteroid. x y (random-speed size (x-dir x))
                  (random-speed size (y-dir y))
-                 (* size 30)
+                 (* size 20)
                  size
                  (u/random-int 1 4)
                  (random-rotation)
@@ -103,9 +103,17 @@
   [x y]
   (Ship. x y 0 0 0 0 :none false false 0 15))
 
-(defn text-effect
+(defn score-text
   [text x y]
-  (TextEffect. x y text 0.7 30 30))
+  (TextEffect. x y text 0.7 0.05 C/TEXT_EFFECT_COLOR 30 30))
+
+(defn wave-text
+  [wave-number]
+  (TextEffect. (/ C/SCREEN_WIDTH 2)
+               (+ (/ C/SCREEN_HEIGHT 2) 40)
+               (str "WAVE " wave-number)
+               3.5 0.15
+               C/WAVE_TEXT_COLOR 50 50))
 
 (defn game-screen
   []
@@ -113,10 +121,10 @@
                [] []
                (ship (/ C/SCREEN_WIDTH 2)
                      (/ C/SCREEN_HEIGHT 2))
-               []
+               [(wave-text 1)]
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
                              C/MAX_TIME_BEFORE_ASTEROID)
-               3 0))
+               3 0 1 1))
 
 (defn game-over-screen
   [{:keys [background-image asteroids bullets effects score]}]

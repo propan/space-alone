@@ -28,7 +28,7 @@
   [context lives score]
   (with-context [ctx context]
     (doto ctx
-      (aset "font" "16px Helvetica")
+      (aset "font" "16px Rammetto One")
       (.translate 25 30)
       (aset "fillStyle" "#FFFFFF")
       (draw-text 20 0 "LIVES" :center)
@@ -140,15 +140,15 @@
 
 (extend-type TextEffect
   Drawable
-  (draw [{:keys [x y text scale lifespan ticks-left]} context]
+  (draw [{:keys [x y text scale color lifespan ticks-left]} context]
     (with-context [ctx context]
       (let [alfa (- 1 (/ ticks-left lifespan))]
         (doto ctx
           (aset "globalAlpha" alfa)
           (aset "shadowBlur" C/SHADOW_BLUR)
-          (aset "shadowColor" C/TEXT_EFFECT_COLOR)
-          (aset "fillStyle" C/TEXT_EFFECT_COLOR)
-          (aset "font" "14px Raleway")
+          (aset "shadowColor" color)
+          (aset "fillStyle" color)
+          (aset "font" "14px Rammetto One")
           (.translate x y)
           (.scale scale scale)
           (draw-text 0 0 text :center))))))
@@ -161,9 +161,9 @@
       (draw b context))
     (doseq [a asteroids]
       (draw a context))
+    (draw ship context)
     (doseq [e effects]
       (draw e context))
-    (draw ship context)
     (draw-stat-panel context lives score)))
 
 (extend-type GameOverScreen
@@ -178,15 +178,15 @@
       (draw e context))
     (with-context [ctx context]
       (doto ctx
-        (aset "font" "80px Raleway")
+        (aset "font" "80px Rammetto One")
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
         (draw-text 0 0 "GAME OVER" :center)
-        (aset "font" "22px Raleway")
+        (aset "font" "22px Rammetto One")
         (aset "fillStyle" "#FF0000")
         (draw-text 0 40 (str "YOUR SCORE: " score) :center)
         (aset "fillStyle" "#FFFFFF")
-        (aset "font" "14px Raleway")
+        (aset "font" "14px Rammetto One")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
         (draw-text 0 75 "press SPACE to start the game" :center)))))
 
@@ -198,10 +198,10 @@
       (draw a context))
     (with-context [ctx context]
       (doto ctx
-        (aset "font" "80px Raleway")
+        (aset "font" "80px Rammetto One")
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
         (draw-text 0 0 "SPACE ALONE" :center)
-        (aset "font" "14px Raleway")
+        (aset "font" "14px Rammetto One")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
         (draw-text 0 30 "press SPACE to start the game" :center)))))

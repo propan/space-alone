@@ -87,8 +87,8 @@
 
 (extend-type TextEffect
   Tickable
-  (tick [{:keys [scale ticks-left] :as effect}]
-    (merge effect {:scale      (+ scale 0.05)
+  (tick [{:keys [scale scale-speed ticks-left] :as effect}]
+    (merge effect {:scale      (+ scale scale-speed)
                    :ticks-left (dec ticks-left)})))
 
 ;;
@@ -104,7 +104,7 @@
   (let [points (get C/ASTEROID_POINTS type)
         pieces (partition 2 1 (take 1 points) points)]
     (cons
-     (m/text-effect (str reward) x y)
+     (m/score-text (str reward) x y)
      (map (fn [[[lx ly] [rx ry]]]
             (m/asteroid-piece x y lx ly rx ry size rotation)) pieces))))
 
@@ -218,20 +218,36 @@
               (<= lives 0) (m/game-over-screen)))
     state))
 
+(defn detect-next-wave
+  [{:keys [asteroids wave effects asteroids-left] :as state}]
+  (if (and (zero? asteroids-left)
+           (empty? asteroids))
+    (let [next-wave (inc wave)]
+      (merge state {:asteroids-left next-wave
+                    :wave           next-wave
+                    :effects (cons (m/wave-text next-wave) effects)}))
+    state))
+
 (extend-type GameScreen
   Tickable
-  (tick [{:keys [ship bullets asteroids effects next-asteroid] :as state}]
-    (let [{:keys [x y rotation shoot next-shoot]} ship]
+  (tick [{:keys [ship bullets asteroids effects next-asteroid asteroids-left] :as state}]
+    (let [{:keys [x y rotation shoot next-shoot]} ship
+          generate-asteroid?                      (and (zero? next-asteroid)
+                                                       (pos? asteroids-left))]
       (-> state
-          (merge {:asteroids     (asteroids-tick asteroids (zero? next-asteroid))
-                  :bullets       (bullets-tick bullets (and shoot (zero? next-shoot)) x y rotation)
-                  :effects       (effects-tick effects)
-                  :ship          (tick ship)
-                  :next-asteroid (if (zero? next-asteroid)
-                                   (u/random-int C/MIN_TIME_BEFORE_ASTEROID C/MAX_TIME_BEFORE_ASTEROID)
-                                   (max 0 (dec next-asteroid)))})
+          (merge {:asteroids      (asteroids-tick asteroids generate-asteroid?)
+                  :bullets        (bullets-tick bullets (and shoot (zero? next-shoot)) x y rotation)
+                  :effects        (effects-tick effects)
+                  :ship           (tick ship)
+                  :next-asteroid  (if generate-asteroid?
+                                    (u/random-int C/MIN_TIME_BEFORE_ASTEROID C/MAX_TIME_BEFORE_ASTEROID)
+                                    (max 0 (dec next-asteroid)))
+                  :asteroids-left (if generate-asteroid?
+                                    (dec asteroids-left)
+                                    asteroids-left)})
           (handle-bullet-hits)
-          (detect-collision)))))
+          (detect-collision)
+          (detect-next-wave)))))
 
 (extend-type GameOverScreen
   Tickable
