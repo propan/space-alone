@@ -49,3 +49,5 @@
 ;; graphics
 
 (def SHADOW_BLUR 9)
+
+(def TEXT_EFFECT_COLOR "#FFBB3D")

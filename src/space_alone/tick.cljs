@@ -1,6 +1,7 @@
 (ns space-alone.tick
   (:require [space-alone.constants :as C]
-            [space-alone.models :as m :refer [Asteroid AsteroidPiece Bullet Particle Ship GameScreen WelcomeScreen]]
+            [space-alone.models :as m :refer [Asteroid AsteroidPiece Bullet Particle
+                                              Ship TextEffect GameScreen WelcomeScreen]]
             [space-alone.utils :as u]))
 
 ;;
@@ -50,11 +51,11 @@
 
 (extend-type AsteroidPiece
   Tickable
-  (tick [{:keys [x y vX vY rotate rotation rotation-speed lifespan] :as asteroid-piece}]
-    (merge asteroid-piece {:x        (next-position x + vX C/SCREEN_WIDTH)
-                           :y        (next-position y + vY C/SCREEN_HEIGHT)
-                           :rotation (next-rotation rotate rotation rotation-speed)
-                           :lifespan (dec lifespan)})))
+  (tick [{:keys [x y vX vY rotate rotation rotation-speed ticks-left] :as asteroid-piece}]
+    (merge asteroid-piece {:x          (next-position x + vX C/SCREEN_WIDTH)
+                           :y          (next-position y + vY C/SCREEN_HEIGHT)
+                           :rotation   (next-rotation rotate rotation rotation-speed)
+                           :ticks-left (dec ticks-left)})))
 
 (extend-type Bullet
   Tickable
@@ -65,10 +66,10 @@
 
 (extend-type Particle
   Tickable
-  (tick [{:keys [x y vX vY lifespan] :as particle}]
-    (merge particle {:x        (next-position x - vX C/SCREEN_WIDTH)
-                     :y        (next-position y - vY C/SCREEN_HEIGHT)
-                     :lifespan (dec lifespan)})))
+  (tick [{:keys [x y vX vY ticks-left] :as particle}]
+    (merge particle {:x          (next-position x - vX C/SCREEN_WIDTH)
+                     :y          (next-position y - vY C/SCREEN_HEIGHT)
+                     :ticks-left (dec ticks-left)})))
 
 (extend-type Ship
   Tickable
@@ -83,6 +84,12 @@
                    :next-shoot (if shoot?
                                  C/TIME_BETWEEN_SHOOTS
                                  (max 0 (dec next-shoot)))}))))
+
+(extend-type TextEffect
+  Tickable
+  (tick [{:keys [scale ticks-left] :as effect}]
+    (merge effect {:scale      (+ scale 0.05)
+                   :ticks-left (dec ticks-left)})))
 
 ;;
 ;; Game Screen
@@ -106,11 +113,13 @@
     1 nil))
 
 (defn create-asteroid-break-effect
-  [{:keys [x y type size rotation] :as a}]
+  [{:keys [x y type size rotation] :as a} reward]
   (let [points (get C/ASTEROID_POINTS type)
         pieces (partition 2 1 (take 1 points) points)]
-    (map (fn [[[lx ly] [rx ry]]]
-           (m/asteroid-piece x y lx ly rx ry size rotation)) pieces)))
+    (cons
+     (m/text-effect (str reward) x y)
+     (map (fn [[[lx ly] [rx ry]]]
+            (m/asteroid-piece x y lx ly rx ry size rotation)) pieces))))
 
 (defn hit?
   [o asteroid]
@@ -137,7 +146,7 @@
   [effects]
   (->> effects
        (map tick effects)
-       (filter #(pos? (:lifespan %)))))
+       (filter #(pos? (:ticks-left %)))))
 
 (defn find-hit
   [asteroid bullets]
@@ -178,10 +187,11 @@
                      (conj res (assoc asteroid :energy energy-left))
                      (into new-effects (create-hit-effect hit))
                      points)
-              (recur (rest asteroids) bullets
-                     (into res (break-asteroid asteroid))
-                     (into new-effects (create-asteroid-break-effect asteroid))
-                     (+ points (* size C/ASTEROID_UNIT_REWARD)))))
+              (let [reward (* size C/ASTEROID_UNIT_REWARD)]
+                (recur (rest asteroids) bullets
+                       (into res (break-asteroid asteroid))
+                       (into new-effects (create-asteroid-break-effect asteroid reward))
+                       (+ points reward)))))
           (recur (rest asteroids) bullets (conj res asteroid) new-effects points))))))
 
 (defn detect-collision

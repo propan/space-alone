@@ -1,7 +1,8 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid AsteroidPiece Bullet Particle Ship GameScreen WelcomeScreen]]))
+            [space-alone.models :refer [Asteroid AsteroidPiece Bullet Particle
+                                        Ship TextEffect GameScreen WelcomeScreen]]))
 
 ;
 ; Helpers
@@ -136,6 +137,21 @@
         (.lineTo -7 5)
         (.closePath)
         (.stroke)))))
+
+(extend-type TextEffect
+  Drawable
+  (draw [{:keys [x y text scale lifespan ticks-left]} context]
+    (with-context [ctx context]
+      (let [alfa (- 1 (/ ticks-left lifespan))]
+        (doto ctx
+          (aset "globalAlpha" alfa)
+          (aset "shadowBlur" C/SHADOW_BLUR)
+          (aset "shadowColor" C/TEXT_EFFECT_COLOR)
+          (aset "fillStyle" C/TEXT_EFFECT_COLOR)
+          (aset "font" "14px Raleway")
+          (.translate x y)
+          (.scale scale scale)
+          (draw-text 0 0 text :center))))))
 
 (extend-type GameScreen
   Drawable

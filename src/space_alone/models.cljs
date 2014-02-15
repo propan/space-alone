@@ -4,13 +4,15 @@
 
 (defrecord Asteroid [x y vX vY energy size type rotate rotation rotation-speed])
 
-(defrecord AsteroidPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan])
+(defrecord AsteroidPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan ticks-left])
 
 (defrecord Bullet [x y vX vY energy radius])
 
-(defrecord Particle [x y vX vY radius color lifespan])
+(defrecord Particle [x y vX vY radius color lifespan ticks-left])
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
+
+(defrecord TextEffect [x y text scale lifespan ticks-left])
 
 (defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score])
 
@@ -59,13 +61,15 @@
 
 (defn asteroid-piece
   [x y lx ly rx ry size rotation]
-  (AsteroidPiece. x y lx ly rx ry size
-                  (u/random-float 0.1 0.4)
-                  (u/random-float 0.1 0.4)
-                  (random-rotation) rotation
-                  (u/random-float 0.1 0.5)
-                  "#FF3030"
-                  (u/random-int 30 60)))
+  (let [lifespan (u/random-int 30 60)]
+    (AsteroidPiece. x y lx ly rx ry size
+                    (u/random-float 0.1 0.4)
+                    (u/random-float 0.1 0.4)
+                    (random-rotation) rotation
+                    (u/random-float 0.1 0.5)
+                    "#FF3030"
+                    lifespan
+                    lifespan)))
 
 (defn bullet
   [x y rotation]
@@ -77,12 +81,17 @@
   [x y]
   (let [rotation (u/random-int 0 360)
         vX       (* (u/random-float 1.5 4.5) (Math/sin (* rotation (- C/RAD_FACTOR))))
-        vY       (* (u/random-float 1.5 4.5) (Math/cos (* rotation (- C/RAD_FACTOR))))]
-    (Particle. x y vX vY (u/random-int 1 5) "#FFB236" (u/random-int 15 45))))
+        vY       (* (u/random-float 1.5 4.5) (Math/cos (* rotation (- C/RAD_FACTOR))))
+        lifespan (u/random-int 15 45)]
+    (Particle. x y vX vY (u/random-int 1 5) "#FFB236" lifespan lifespan)))
 
 (defn ship
   [x y]
   (Ship. x y 0 0 0 0 :none false false 0 15))
+
+(defn text-effect
+  [text x y]
+  (TextEffect. x y text 0.7 30 30))
 
 (defn game-screen
   []
