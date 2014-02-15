@@ -188,7 +188,7 @@
         (aset "fillStyle" "#FFFFFF")
         (aset "font" "14px Rammetto One")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
-        (draw-text 0 75 "press SPACE to start the game" :center)))))
+        (draw-text 0 75 "press N to start the game" :center)))))
 
 (extend-type WelcomeScreen
   Drawable
@@ -204,4 +204,4 @@
         (draw-text 0 0 "SPACE ALONE" :center)
         (aset "font" "14px Rammetto One")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
-        (draw-text 0 30 "press SPACE to start the game" :center)))))
+        (draw-text 0 30 "press N to start the game" :center)))))

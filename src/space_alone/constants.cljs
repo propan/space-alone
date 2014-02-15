@@ -46,6 +46,8 @@
 (def ARROW_RIGHT 39)
 (def ARROW_DOWN 40)
 
+(def N_KEY 78)
+
 ;; graphics
 
 (def SHADOW_BLUR 9)

@@ -31,12 +31,12 @@
   Controller
   (handle [state event]
     (case event
-      :start-shooting (m/game-screen)
+      :start-game (m/game-screen)
       state)))
 
 (extend-type WelcomeScreen
   Controller
   (handle [state event]
     (case event
-      :start-shooting (m/game-screen)
+      :start-game (m/game-screen)
       state)))

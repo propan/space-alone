@@ -4,7 +4,7 @@
             [clojure.browser.dom :as dom]
             [goog.events :as events]
             [space-alone.control :as ctrl]
-            [space-alone.constants :as c]
+            [space-alone.constants :as C]
             [space-alone.draw :as d]
             [space-alone.models :as m]
             [space-alone.tick :as t]))
@@ -12,16 +12,17 @@
 (enable-console-print!)
 
 (def controls-start
-  {c/ARROW_LEFT  :start-rotate-left
-   c/ARROW_RIGHT :start-rotate-right
-   c/ARROW_UP    :start-accelerate
-   c/SPACE       :start-shooting})
+  {C/N_KEY       :start-game
+   C/ARROW_LEFT  :start-rotate-left
+   C/ARROW_RIGHT :start-rotate-right
+   C/ARROW_UP    :start-accelerate
+   C/SPACE       :start-shooting})
 
 (def controls-stop
-  {c/ARROW_LEFT  :stop-rotate-left
-   c/ARROW_RIGHT :stop-rotate-right
-   c/ARROW_UP    :stop-accelerate
-   c/SPACE       :stop-shooting})
+  {C/ARROW_LEFT  :stop-rotate-left
+   C/ARROW_RIGHT :stop-rotate-right
+   C/ARROW_UP    :stop-accelerate
+   C/SPACE       :stop-shooting})
 
 (def state (atom (m/welcome-screen)))
 
