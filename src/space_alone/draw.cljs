@@ -33,7 +33,7 @@
       (aset "fillStyle" "#FFFFFF")
       (draw-text 20 0 "LIVES" :center)
       (draw-text 105 0 "SCORE" :center)
-      (aset "fillStyle" "#00FF00")
+      (aset "fillStyle" "#FF0000")
       (draw-text 60 0 (str lives) :center)
       (draw-text 145 0 (str score) :right))))
 
@@ -182,9 +182,13 @@
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
         (draw-text 0 0 "GAME OVER" :center)
+        (aset "font" "22px Raleway")
+        (aset "fillStyle" "#FF0000")
+        (draw-text 0 40 (str "YOUR SCORE: " score) :center)
+        (aset "fillStyle" "#FFFFFF")
         (aset "font" "14px Raleway")
         (aset "globalAlpha" (mod (.getSeconds (js/Date.)) 2))
-        (draw-text 0 50 "press SPACE to start the game" :center)))))
+        (draw-text 0 75 "press SPACE to start the game" :center)))))
 
 (extend-type WelcomeScreen
   Drawable

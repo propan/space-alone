@@ -212,10 +212,10 @@
   (if (some #(hit? ship %) asteroids)
     (let [lives (dec lives)]
       (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
-              (>= lives 0) (merge {:lives lives
+              (pos? lives) (merge {:lives lives
                                    :ship  (m/ship (/ C/SCREEN_WIDTH 2)
                                                   (/ C/SCREEN_HEIGHT 2))})
-              (neg? lives) (m/game-over-screen)))
+              (<= lives 0) (m/game-over-screen)))
     state))
 
 (extend-type GameScreen
