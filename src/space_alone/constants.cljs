@@ -2,6 +2,8 @@
 
 (def RAD_FACTOR (/ Math.PI 180))
 
+(def MAX_SHIP_IMMUNITY 300)
+
 ;; screen dimensions
 (def SCREEN_WIDTH 1024)
 (def SCREEN_HEIGHT 600)
@@ -56,3 +58,4 @@
 (def TEXT_EFFECT_COLOR "#FFFF00")
 (def WAVE_TEXT_COLOR "#FFFF00")
 (def ASTEROID_PIECE_COLOR "#FF3030")
+(def SHIELD_COLOR "#FFFFFF")

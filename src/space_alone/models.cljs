@@ -10,7 +10,7 @@
 
 (defrecord Particle [x y vX vY radius color lifespan ticks-left])
 
-(defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius])
+(defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius immunity])
 
 (defrecord TextEffect [x y text scale scale-speed color lifespan ticks-left])
 
@@ -100,8 +100,8 @@
     (Particle. x y vX vY (u/random-int 1 5) "#FFB236" lifespan lifespan)))
 
 (defn ship
-  [x y]
-  (Ship. x y 0 0 0 0 :none false false 0 15))
+  [x y immunity]
+  (Ship. x y 0 0 0 0 :none false false 0 15 immunity))
 
 (defn score-text
   [text x y]
@@ -120,7 +120,8 @@
   (GameScreen. (u/image "resources/images/background.jpg")
                [] []
                (ship (/ C/SCREEN_WIDTH 2)
-                     (/ C/SCREEN_HEIGHT 2))
+                     (/ C/SCREEN_HEIGHT 2)
+                     0)
                [(wave-text 1)]
                (u/random-int C/MIN_TIME_BEFORE_ASTEROID
                              C/MAX_TIME_BEFORE_ASTEROID)

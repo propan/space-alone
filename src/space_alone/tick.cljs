@@ -73,7 +73,7 @@
 
 (extend-type Ship
   Tickable
-  (tick [{:keys [x y vX vY rotation thrust accelerate rotate shoot next-shoot] :as ship}]
+  (tick [{:keys [x y vX vY rotation thrust accelerate rotate shoot next-shoot immunity] :as ship}]
     (let [shoot? (and shoot (zero? next-shoot))]
       (merge ship {:x          (next-position x + vX C/SCREEN_WIDTH)
                    :y          (next-position y - vY C/SCREEN_HEIGHT)
@@ -83,7 +83,8 @@
                    :thrust     (next-thrust accelerate thrust)
                    :next-shoot (if shoot?
                                  C/TIME_BETWEEN_SHOOTS
-                                 (max 0 (dec next-shoot)))}))))
+                                 (max 0 (dec next-shoot)))
+                   :immunity   (max 0 (dec immunity))}))))
 
 (extend-type TextEffect
   Tickable
@@ -209,13 +210,16 @@
 
 (defn detect-collision
   [{:keys [ship asteroids lives] :as state}]
-  (if (some #(hit? ship %) asteroids)
-    (let [lives (dec lives)]
-      (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
-              (pos? lives) (merge {:lives lives
-                                   :ship  (m/ship (/ C/SCREEN_WIDTH 2)
-                                                  (/ C/SCREEN_HEIGHT 2))})
-              (<= lives 0) (m/game-over-screen)))
+  (if (zero? (:immunity ship)) ;; check that ship is not immune
+    (if (some #(hit? ship %) asteroids)
+      (let [lives (dec lives)]
+        (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
+                (pos? lives) (merge {:lives lives
+                                     :ship  (m/ship (/ C/SCREEN_WIDTH 2)
+                                                    (/ C/SCREEN_HEIGHT 2)
+                                                    C/MAX_SHIP_IMMUNITY)})
+                (<= lives 0) (m/game-over-screen)))
+      state)
     state))
 
 (defn detect-next-wave

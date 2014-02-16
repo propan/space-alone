@@ -37,6 +37,21 @@
       (draw-text 60 0 (str lives) :center)
       (draw-text 145 0 (str score) :right))))
 
+(defn- draw-shield
+  [context immunity]
+  (when (pos? immunity)
+    (with-context [ctx context]
+      (doto ctx
+        (aset "strokeStyle" C/SHIELD_COLOR)
+        (aset "shadowBlur" 3)
+        (aset "shadowColor" "#0000FF")
+        (aset "lineWidth" 1.2)
+        (aset "globalAlpha" (/ immunity C/MAX_SHIP_IMMUNITY))
+        (.beginPath)
+        (.arc 0 0 20 (* 2 Math/PI) false)
+        (.closePath)
+        (.stroke)))))
+
 (defn- stroke-asteroid
   [ctx type]
   (let [points (get C/ASTEROID_POINTS type)
@@ -120,7 +135,7 @@
 
 (extend-type Ship
   Drawable
-  (draw [{:keys [x y rotation]} context]
+  (draw [{:keys [x y rotation immunity]} context]
     (with-context [ctx context]
       (doto ctx
         (aset "shadowBlur" C/SHADOW_BLUR)
@@ -136,7 +151,8 @@
         (.moveTo 7 5)
         (.lineTo -7 5)
         (.closePath)
-        (.stroke)))))
+        (.stroke)
+        (draw-shield immunity)))))
 
 (extend-type TextEffect
   Drawable
