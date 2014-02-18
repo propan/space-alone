@@ -6,9 +6,11 @@
 
 (defrecord Bullet [x y vX vY energy radius])
 
+(deftype CachedImage [width height data])
+
 (defrecord ObjectPiece [x y lx ly rx ry size vX vY rotate rotation rotation-speed color lifespan ticks-left])
 
-(defrecord Particle [x y vX vY radius color lifespan ticks-left])
+(defrecord Particle [x y vX vY radius lifespan ticks-left])
 
 (defrecord Ship [x y vX vY thrust rotation rotate accelerate shoot next-shoot radius immunity])
 
@@ -97,7 +99,7 @@
         vX       (* (u/random-float 1.5 4.5) (Math/sin (* rotation (- C/RAD_FACTOR))))
         vY       (* (u/random-float 1.5 4.5) (Math/cos (* rotation (- C/RAD_FACTOR))))
         lifespan (u/random-int 15 45)]
-    (Particle. x y vX vY (u/random-int 1 5) "#FFB236" lifespan lifespan)))
+    (Particle. x y vX vY (u/random-int 1 5) lifespan lifespan)))
 
 (defn ship
   [x y immunity]

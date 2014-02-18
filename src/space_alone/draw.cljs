@@ -1,7 +1,7 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid Bullet ObjectPiece Particle Ship TextEffect
+            [space-alone.models :refer [Asteroid Bullet CachedImage ObjectPiece Particle Ship TextEffect
                                         GameScreen GameOverScreen WelcomeScreen]]))
 
 ;
@@ -23,6 +23,15 @@
     (.addColorStop 0.4 "#FFFFFF")
     (.addColorStop 0.4 color)
     (.addColorStop 1.0 "#000000")))
+
+(defn- draw-cached-image
+  [context image x y rotation]
+  (with-context [ctx context]
+    (let [offset (- (/ (.-width image) 2))]
+      (doto ctx
+        (.translate x y)
+        (.rotate (* rotation C/RAD_FACTOR))
+        (.drawImage (.-data image) offset offset)))))
 
 (defn- draw-stat-panel
   [context lives score]
@@ -61,6 +70,69 @@
       (.lineTo ctx x y))))
 
 ;;
+;; Cache
+;;
+
+(defn generate-asteroid-image
+  [buffer size asteroid-type]
+  (let [image-size (* 2.38 size C/ASTEROID_UNIT_SIZE)
+        scale      (* 1.5 size)
+        width      (* 2.0 (/ 1.5 size))
+        middle     (/ image-size 2)
+        image      (js/Image.)]
+    ;; resize buffer
+    (set! (.-width buffer) image-size)
+    (set! (.-height buffer) image-size)
+
+    (with-context [ctx (.getContext buffer "2d")]
+      (doto ctx
+        (aset "lineWidth" width)
+        (aset "strokeStyle" "#C0C0C0")
+        (.clearRect 0 0 image-size image-size)
+        (.translate middle middle)
+        (.scale scale scale)
+        (.beginPath)
+        (stroke-asteroid asteroid-type)
+        (.closePath)
+        (.stroke)
+        (.fill)))
+    (set! (.-src image) (.toDataURL buffer "image/png"))
+    (CachedImage. image-size image-size image)))
+
+(defn generate-particle-image
+  [buffer radius color]
+  (let [image-size (* 2 (+ radius C/SHADOW_BLUR))
+        middle     (/ image-size 2)
+        image      (js/Image.)]
+    ;; resize buffer
+    (set! (.-width buffer) image-size)
+    (set! (.-height buffer) image-size)
+    (with-context [ctx (.getContext buffer "2d")]
+      (doto ctx
+        (aset "globalCompositeOperation" "lighter")
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" radius)
+        (aset "fillStyle" (create-gradient ctx 0 0 radius color))
+        (.translate middle middle)
+        (.beginPath)
+        (.arc 0 0 radius (* 2 Math/PI) false)
+        (.fill)))
+    (set! (.-src image) (.toDataURL buffer "image/png"))
+    (CachedImage. image-size image-size image)))
+
+(def asteroid-images
+  (let [buffer (.createElement js/document "canvas")]
+    (into-array (for [size (range 1 5)]
+                  (into-array (for [type (range 1 5)]
+                                (generate-asteroid-image buffer size type)))))))
+(def bullet-image
+  (generate-particle-image (.createElement js/document "canvas") 5 C/BULLET_COLOR))
+
+(def particle-images
+  (let [buffer (.createElement js/document "canvas")]
+    (into-array (for [radius (range 1 6)]
+                  (generate-particle-image buffer radius C/PARTICLE_COLOR)))))
+;;
 ;; Drawable Protocol
 ;;
 
@@ -70,34 +142,12 @@
 (extend-type Asteroid
   Drawable
   (draw [{:keys [x y size type rotation]} context]
-    (with-context [ctx context]
-      (let [radius (* size C/ASTEROID_UNIT_SIZE)
-            scale  (* 1.5 size)
-            width  (* 3.0 (/ 1.5 size))]
-        (doto ctx
-          (aset "lineWidth" width)
-          (aset "strokeStyle" "#C0C0C0")
-          (.translate x y)
-          (.scale scale scale)
-          (.rotate (* rotation C/RAD_FACTOR))
-          (.beginPath)
-          (stroke-asteroid type)
-          (.closePath)
-          (.stroke)
-          (.fill))))))
+    (draw-cached-image context (aget asteroid-images (dec size) (dec type)) x y rotation)))
 
 (extend-type Bullet
   Drawable
-  (draw [{:keys [x y radius]} context]
-    (with-context [ctx context]
-      (doto ctx
-        (aset "shadowBlur" C/SHADOW_BLUR)
-        (aset "shadowColor" "#FF0000")
-        (aset "fillStyle" (create-gradient ctx 0 0 radius "#FF0000"))
-        (.translate x y)
-        (.beginPath)
-        (.arc 0 0 radius (* 2 Math/PI) false)
-        (.fill)))))
+  (draw [{:keys [x y rotation radius]} context]
+    (draw-cached-image context bullet-image x y 0)))
 
 (extend-type ObjectPiece
   Drawable
@@ -121,17 +171,8 @@
 
 (extend-type Particle
   Drawable
-  (draw [{:keys [x y radius color lifespan]} context]
-    (with-context [ctx context]
-      (doto ctx
-        (aset "globalCompositeOperation" "lighter")
-        (aset "shadowBlur" C/SHADOW_BLUR)
-        (aset "shadowColor" radius)
-        (aset "fillStyle" (create-gradient ctx 0 0 radius color))
-        (.translate x y)
-        (.beginPath)
-        (.arc 0 0 radius (* 2 Math/PI) false)
-        (.fill)))))
+  (draw [{:keys [x y radius color lifespan ticks-left]} context]
+    (draw-cached-image context (aget particle-images (dec radius)) x y 0)))
 
 (extend-type Ship
   Drawable
