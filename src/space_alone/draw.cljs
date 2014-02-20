@@ -235,7 +235,7 @@
       (draw e context))
     (with-context [ctx context]
       (doto ctx
-        (aset "font" "80px Rammetto One")
+        (aset "font" "65px Rammetto One")
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
         (draw-text 0 0 "GAME OVER" :center)
@@ -255,7 +255,7 @@
       (draw a context))
     (with-context [ctx context]
       (doto ctx
-        (aset "font" "80px Rammetto One")
+        (aset "font" "65px Rammetto One")
         (aset "fillStyle" "#FFFFFF")
         (.translate (/ C/SCREEN_WIDTH 2) (/ C/SCREEN_HEIGHT 2))
         (draw-text 0 0 "SPACE ALONE" :center)

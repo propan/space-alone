@@ -82,7 +82,7 @@
                    :rotation   (next-rotation rotate rotation C/TURN_FACTOR)
                    :thrust     (next-thrust accelerate thrust)
                    :next-shoot (if shoot?
-                                 C/TIME_BETWEEN_SHOOTS
+                                 C/TICKS_BETWEEN_SHOOTS
                                  (max 0 (dec next-shoot)))
                    :immunity   (max 0 (dec immunity))}))))
 
@@ -98,7 +98,7 @@
 
 (defn create-hit-effect
   [{:keys [x y]}]
-  (repeatedly (u/random-int 4 12) #(m/particle x y)))
+  (repeatedly (u/random-int 3 7) #(m/particle x y)))
 
 (defn create-asteroid-break-effect
   [{:keys [x y type size rotation] :as a} reward]

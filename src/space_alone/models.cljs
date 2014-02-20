@@ -38,19 +38,23 @@
     2 (* direction (u/random-float 0.2  0.7))
     1 (* direction (u/random-float 0.3  0.9))))
 
+(defn random-direction
+  []
+  (if (< (Math/random) 0.5) -1 1))
+
 (defn x-dir
   [x]
   (cond
    (< x C/LEFT_EDGE) 1
    (> x C/RIGHT_EDGE) -1
-   :else (if (< (Math/random) 0.5) -1 1)))
+   :else (random-direction)))
 
 (defn y-dir
   [y]
   (cond
    (< y C/TOP_EDGE) -1
    (> y C/BOTTOM_EDGE) 1
-   :else (if (< (Math/random) 0.5) -1 1)))
+   :else (random-direction)))
 
 (defn asteroid
   [x y size]
@@ -65,10 +69,10 @@
 
 (defn asteroid-piece
   [x y lx ly rx ry size rotation]
-  (let [lifespan (u/random-int 30 60)]
+  (let [lifespan (u/random-int 10 20)]
     (ObjectPiece. x y lx ly rx ry size
-                  (u/random-float 0.1 0.4)
-                  (u/random-float 0.1 0.4)
+                  (* (random-direction) (u/random-float 0.5 1.0))
+                  (* (random-direction) (u/random-float 0.5 1.0))
                   (random-rotation) rotation
                   (u/random-float 0.1 0.5)
                   C/ASTEROID_PIECE_COLOR
@@ -96,9 +100,9 @@
 (defn particle
   [x y]
   (let [rotation (u/random-int 0 360)
-        vX       (* (u/random-float 1.5 4.5) (Math/sin (* rotation (- C/RAD_FACTOR))))
-        vY       (* (u/random-float 1.5 4.5) (Math/cos (* rotation (- C/RAD_FACTOR))))
-        lifespan (u/random-int 15 45)]
+        vX       (* (u/random-float C/MIN_PARTICLE_SPEED C/MAX_PARTICLE_SPEED) (Math/sin (* rotation (- C/RAD_FACTOR))))
+        vY       (* (u/random-float C/MIN_PARTICLE_SPEED C/MAX_PARTICLE_SPEED) (Math/cos (* rotation (- C/RAD_FACTOR))))
+        lifespan (u/random-int 5 25)]
     (Particle. x y vX vY (u/random-int 1 5) lifespan lifespan)))
 
 (defn ship

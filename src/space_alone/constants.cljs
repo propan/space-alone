@@ -5,8 +5,8 @@
 (def MAX_SHIP_IMMUNITY 300)
 
 ;; screen dimensions
-(def SCREEN_WIDTH 960)
-(def SCREEN_HEIGHT 580)
+(def SCREEN_WIDTH 640)
+(def SCREEN_HEIGHT 600)
 
 (def LEFT_EDGE 5)
 (def RIGHT_EDGE (- SCREEN_WIDTH LEFT_EDGE))
@@ -20,13 +20,13 @@
 
 (def THRUST_DECLINE 0.3)
 
-(def TURN_FACTOR 1.5)
+(def TURN_FACTOR 4)
 (def ACCELERATION 0.01)
 
 ;; shooting constants
-(def TIME_BETWEEN_SHOOTS 20)
-(def BULLET_SPEED 15)
-(def BULLET_ENERGY 35)
+(def TICKS_BETWEEN_SHOOTS 8)
+(def BULLET_SPEED 8)
+(def BULLET_ENERGY 30)
 
 ;; asteroids generation
 (def ASTEROID_POINTS {1 [[9 6] [4 8] [2 11] [-2 9] [-3 9] [-5 10] [-8 6] [-11 2] [-9 -1] [-11 -3] [-10 -6] [-9 -8] [-2 -9] [1 -8] [2 -10] [4 -8] [10 -7]]
@@ -39,6 +39,10 @@
 
 (def ASTEROID_UNIT_SIZE 16)
 (def ASTEROID_UNIT_REWARD 100)
+
+;; particles
+(def MIN_PARTICLE_SPEED 3)
+(def MAX_PARTICLE_SPEED 5)
 
 ;; controls
 (def SPACE 32)
