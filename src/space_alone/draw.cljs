@@ -126,7 +126,7 @@
                   (into-array (for [type (range 1 5)]
                                 (generate-asteroid-image buffer size type)))))))
 (def bullet-image
-  (generate-particle-image (.createElement js/document "canvas") 5 C/BULLET_COLOR))
+  (generate-particle-image (.createElement js/document "canvas") C/BULLET_RADIUS C/BULLET_COLOR))
 
 (def particle-images
   (let [buffer (.createElement js/document "canvas")]

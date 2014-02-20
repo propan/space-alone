@@ -139,12 +139,6 @@
     2 (take 4 (repeatedly #(m/asteroid x y 1)))
     1 nil))
 
-(defn hit?
-  [o asteroid]
-  (<= (u/distance (:x o) (:y o)
-                  (:x asteroid) (:y asteroid))
-      (+ (* (:size asteroid) C/ASTEROID_UNIT_SIZE) (:radius o))))
-
 (defn- asteroids-tick
   [asteroids add-asteroid?]
   (->> (if add-asteroid?
@@ -166,61 +160,74 @@
        (map tick effects)
        (filter #(pos? (:ticks-left %)))))
 
+(defn bullet-hit?
+  [bullet x y radius]
+  (<= (u/distance (:x bullet) (:y bullet) x y)
+      (+ radius C/BULLET_RADIUS)))
+
 (defn find-hit
-  [asteroid bullets]
-  (loop [hit     nil
-         res     []
-         bullets bullets]
-    (if (or (not (nil? hit))
-            (empty? bullets))
-      {:hit hit :bullets (into res bullets)}
+  [{:keys [x y size] :as asteroid} bullets]
+  (let [asteroid-radius (* size C/ASTEROID_UNIT_SIZE)]
+    (loop [hit           nil
+           res           []
+           bullets       bullets]
       (let [bullet (first bullets)]
-        (if (hit? bullet asteroid)
-          (recur bullet res (rest bullets))
-          (recur nil (conj res bullet) (rest bullets)))))))
+        (if (or hit (not bullet))
+          {:hit hit :bullets (into res bullets)}
+          (if (bullet-hit? bullet x y asteroid-radius)
+            (recur bullet res (rest bullets))
+            (recur nil (conj res bullet) (rest bullets))))))))
 
 (defn handle-bullet-hits
   [{:keys [asteroids bullets effects score] :as state}]
-  (loop [asteroids   asteroids
-         bullets     bullets
-         res         []
-         new-effects []
-         points      score]
-    (if (or (empty? asteroids)
-            (empty? bullets))
-      (merge state {:asteroids (into res asteroids)
-                    :bullets   bullets
-                    :effects   (concat new-effects effects)
-                    :score     points})
-      (let [{:keys [energy size] :as asteroid} (first asteroids)
-            {:keys [hit bullets]}              (find-hit asteroid bullets)]
-        (if-not (nil? hit)
-          (let [energy-left (- energy (:energy hit))]
-            (if (pos? energy-left)
-              (recur (rest asteroids) bullets
-                     (conj res (assoc asteroid :energy energy-left))
-                     (into new-effects (create-hit-effect hit))
-                     points)
-              (let [reward (* size C/ASTEROID_UNIT_REWARD)]
+  (loop [asteroids       asteroids
+         bullets         bullets
+         res             []
+         new-effects     []
+         points          score]
+    (let [asteroid (first asteroids)
+          bullet   (first bullets)]
+      (if (or (not asteroid)
+              (not bullet))
+        (merge state {:asteroids (into res asteroids)
+                      :bullets   bullets
+                      :effects   (concat new-effects effects)
+                      :score     points})
+        (let [{:keys [energy size]} asteroid
+              {:keys [hit bullets]} (find-hit asteroid bullets)]
+          (if-not (nil? hit)
+            (let [energy-left (- energy (:energy hit))]
+              (if (pos? energy-left)
                 (recur (rest asteroids) bullets
-                       (into res (break-asteroid asteroid))
-                       (into new-effects (create-asteroid-break-effect asteroid reward))
-                       (+ points reward)))))
-          (recur (rest asteroids) bullets (conj res asteroid) new-effects points))))))
+                       (conj res (assoc asteroid :energy energy-left))
+                       (into new-effects (create-hit-effect hit))
+                       points)
+                (let [reward (* size C/ASTEROID_UNIT_REWARD)]
+                  (recur (rest asteroids) bullets
+                         (into res (break-asteroid asteroid))
+                         (into new-effects (create-asteroid-break-effect asteroid reward))
+                         (+ points reward)))))
+            (recur (rest asteroids) bullets (conj res asteroid) new-effects points)))))))
+
+(defn asteroid-hit?
+  [asteroid x y radius]
+  (<= (u/distance (:x asteroid) (:y asteroid) x y)
+      (+ (* (:size asteroid) C/ASTEROID_UNIT_SIZE) radius)))
 
 (defn detect-collision
   [{:keys [ship asteroids lives] :as state}]
-  (if (zero? (:immunity ship)) ;; check that ship is not immune
-    (if (some #(hit? ship %) asteroids)
-      (let [lives (dec lives)]
-        (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
-                (pos? lives) (merge {:lives lives
-                                     :ship  (m/ship (/ C/SCREEN_WIDTH 2)
-                                                    (/ C/SCREEN_HEIGHT 2)
-                                                    C/MAX_SHIP_IMMUNITY)})
-                (<= lives 0) (m/game-over-screen)))
-      state)
-    state))
+  (let [{:keys [immunity x y radius]} ship]
+    (if (zero? immunity) ;; check that ship is not immune
+      (if (some #(asteroid-hit? % x y radius) asteroids)
+        (let [lives (dec lives)]
+          (cond-> (update-in state [:effects] concat (create-ship-explosion-effect ship))
+                  (pos? lives) (merge {:lives lives
+                                       :ship  (m/ship (/ C/SCREEN_WIDTH 2)
+                                                      (/ C/SCREEN_HEIGHT 2)
+                                                      C/MAX_SHIP_IMMUNITY)})
+                  (<= lives 0) (m/game-over-screen)))
+        state)
+      state)))
 
 (defn detect-next-wave
   [{:keys [asteroids wave effects asteroids-left] :as state}]

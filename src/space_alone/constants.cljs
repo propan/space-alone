@@ -27,6 +27,7 @@
 (def TICKS_BETWEEN_SHOOTS 8)
 (def BULLET_SPEED 8)
 (def BULLET_ENERGY 30)
+(def BULLET_RADIUS 5)
 
 ;; asteroids generation
 (def ASTEROID_POINTS {1 [[9 6] [4 8] [2 11] [-2 9] [-3 9] [-5 10] [-8 6] [-11 2] [-9 -1] [-11 -3] [-10 -6] [-9 -8] [-2 -9] [1 -8] [2 -10] [4 -8] [10 -7]]
