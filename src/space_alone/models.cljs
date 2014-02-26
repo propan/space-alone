@@ -16,6 +16,8 @@
 
 (defrecord TextEffect [x y text scale scale-speed color lifespan ticks-left])
 
+(defrecord ThrustEffect [x y rotation lifespan ticks-left])
+
 (defrecord GameScreen [background-image asteroids bullets ship effects next-asteroid lives score wave asteroids-left])
 
 (defrecord GameOverScreen [background-image asteroids bullets effects score])
@@ -112,6 +114,10 @@
 (defn score-text
   [text x y]
   (TextEffect. x y text 0.7 0.05 C/TEXT_EFFECT_COLOR 30 30))
+
+(defn thrust-effect
+  [x y rotation]
+  (ThrustEffect. x y rotation 10 10))
 
 (defn wave-text
   [wave-number]

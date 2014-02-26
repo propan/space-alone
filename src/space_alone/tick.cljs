@@ -1,6 +1,6 @@
 (ns space-alone.tick
   (:require [space-alone.constants :as C]
-            [space-alone.models :as m :refer [Asteroid Bullet ObjectPiece Particle Ship TextEffect
+            [space-alone.models :as m :refer [Asteroid Bullet ObjectPiece Particle Ship TextEffect ThrustEffect
                                               GameScreen GameOverScreen WelcomeScreen]]
             [space-alone.utils :as u]))
 
@@ -90,6 +90,12 @@
   Tickable
   (tick [{:keys [scale scale-speed ticks-left] :as effect}]
     (merge effect {:scale      (+ scale scale-speed)
+                   :ticks-left (dec ticks-left)})))
+
+(extend-type ThrustEffect
+  Tickable
+  (tick [{:keys [scale scale-speed ticks-left] :as effect}]
+    (merge effect {:scale      (- scale scale-speed)
                    :ticks-left (dec ticks-left)})))
 
 ;;
@@ -239,6 +245,15 @@
                     :effects (cons (m/wave-text next-wave) effects)}))
     state))
 
+(defn- add-thrust-effects
+  [{:keys [ship effects] :as state}]
+  (let [{:keys [x y rotation accelerate]} ship]
+    (if accelerate
+      (let [offset-x (* 15 (Math/sin (* rotation C/RAD_FACTOR)))
+            offset-y (* 15 (Math/cos (* rotation C/RAD_FACTOR)))]
+        (assoc state :effects (cons (m/thrust-effect (- x offset-x) (+ y offset-y) rotation) effects)))
+      state)))
+
 (extend-type GameScreen
   Tickable
   (tick [{:keys [ship bullets asteroids effects next-asteroid asteroids-left] :as state}]
@@ -256,6 +271,7 @@
                   :asteroids-left (if generate-asteroid?
                                     (dec asteroids-left)
                                     asteroids-left)})
+          (add-thrust-effects)
           (handle-bullet-hits)
           (detect-collision)
           (detect-next-wave)))))

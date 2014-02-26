@@ -1,7 +1,7 @@
 (ns space-alone.draw
   (:require-macros [space-alone.macros :refer [with-context]])
   (:require [space-alone.constants :as C]
-            [space-alone.models :refer [Asteroid Bullet CachedImage ObjectPiece Particle Ship TextEffect
+            [space-alone.models :refer [Asteroid Bullet CachedImage ObjectPiece Particle Ship TextEffect ThrustEffect
                                         GameScreen GameOverScreen WelcomeScreen]]))
 
 ;
@@ -27,11 +27,12 @@
 (defn- draw-cached-image
   [context image x y rotation]
   (with-context [ctx context]
-    (let [offset (- (/ (.-width image) 2))]
+    (let [offset-x (- (/ (.-width image) 2))
+          offset-y (- (/ (.-height image) 2))]
       (doto ctx
         (.translate x y)
         (.rotate (* rotation C/RAD_FACTOR))
-        (.drawImage (.-data image) offset offset)))))
+        (.drawImage (.-data image) offset-x offset-y)))))
 
 (defn- draw-stat-panel
   [context lives score]
@@ -120,6 +121,30 @@
     (set! (.-src image) (.toDataURL buffer "image/png"))
     (CachedImage. image-size image-size image)))
 
+(defn generate-thrust-image
+  [buffer]
+  (let [radius       2
+        x-scale      5
+        image-width  (* 2 x-scale (+ radius C/SHADOW_BLUR))
+        image-height (* 2 (+ radius C/SHADOW_BLUR))
+        image        (js/Image.)]
+    ;; resize buffer
+    (set! (.-width buffer) image-width)
+    (set! (.-height buffer) image-height)
+
+    (with-context [ctx (.getContext buffer "2d")]
+      (doto ctx
+        (aset "shadowBlur" C/SHADOW_BLUR)
+        (aset "shadowColor" C/THRUST_COLOR)
+        (aset "fillStyle" C/THRUST_COLOR)
+        (.translate (/ image-width 2) (/ image-height 2))
+        (.scale x-scale 1)
+        (.beginPath)
+        (.arc 0 0 radius (* 2 Math/PI) false)
+        (.fill)))
+    (set! (.-src image) (.toDataURL buffer "image/png"))
+    (CachedImage. image-width image-height image)))
+
 (def asteroid-images
   (let [buffer (.createElement js/document "canvas")]
     (into-array (for [size (range 1 5)]
@@ -132,6 +157,9 @@
   (let [buffer (.createElement js/document "canvas")]
     (into-array (for [radius (range 1 6)]
                   (generate-particle-image buffer radius C/PARTICLE_COLOR)))))
+
+(def thrust-image
+  (generate-thrust-image (.createElement js/document "canvas")))
 ;;
 ;; Drawable Protocol
 ;;
@@ -209,6 +237,20 @@
           (.translate x y)
           (.scale scale scale)
           (draw-text 0 0 text :center))))))
+
+(extend-type ThrustEffect
+  Drawable
+  (draw [{:keys [x y rotation lifespan ticks-left]} context]
+    (let [scale (/ ticks-left lifespan)]
+      ;; should I use draw-cached-image?
+      (with-context [ctx context]
+        (let [offset-x (- (/ (.-width thrust-image) 2))
+              offset-y (- (/ (.-height thrust-image) 2))]
+          (doto ctx
+            (.translate x y)
+            (.scale scale scale)
+            (.rotate (* rotation C/RAD_FACTOR))
+            (.drawImage (.-data thrust-image) offset-x offset-y)))))))
 
 (extend-type GameScreen
   Drawable
